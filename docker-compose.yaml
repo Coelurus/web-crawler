@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  database:
+    image: postgres:16.2
+    environment:
+      POSTGRES_DB: webcrawler
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: docker
+    restart: always
+    volumes:
+      - ./database/WebsiteRecords.sql:/docker-entrypoint-initdb.d/WebsiteRecords.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -q -h localhost -U postgres" ]
+      timeout: 5s
+      interval: 10s
+      retries: 10
