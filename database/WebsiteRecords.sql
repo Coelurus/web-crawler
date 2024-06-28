@@ -1,11 +1,11 @@
 START TRANSACTION;
 
 CREATE TABLE WebsiteRecords (
-  id serial PRIMARY KEY,
-  url varchar(128) NOT NULL,
-  regex varchar(128),
-  periodicity varchar(128) NOT NULL,
-  label varchar(128) NOT NULL,
+  id bigint PRIMARY KEY,
+  url varchar(255) NOT NULL,
+  regex varchar(255),
+  periodicity varchar(255) NOT NULL,
+  label varchar(255) NOT NULL,
   active boolean NOT NULL
 );
 
