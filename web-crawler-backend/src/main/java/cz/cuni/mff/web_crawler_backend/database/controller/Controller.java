@@ -18,8 +18,19 @@ public class Controller {
     @Autowired
     TagRepository tagRepo;
 
+    /* TODO: use this?...when frontend used...needs json type
     @PostMapping("/record")
     public void addRecord(@RequestBody WebsiteRecord wr){
+        wrRepo.save(wr);
+    }
+     */
+
+    @PostMapping("/record")
+    public void addRecord(@RequestParam("url") String url,
+                          @RequestParam("regex") String regex,
+                          @RequestParam("periodicity") String periodicity,
+                          @RequestParam("label") String label){
+        WebsiteRecord wr = new WebsiteRecord(url, regex, periodicity, label);
         wrRepo.save(wr);
     }
 

@@ -22,4 +22,14 @@ public class WebsiteRecord {
     private String label;
 
     private boolean active;
+    public WebsiteRecord() {}
+
+    public WebsiteRecord(String url, String regex, String periodicity, String label) {
+        this.url = url;
+        this.regex = regex;
+        this.periodicity = periodicity;
+        this.label = label;
+        this.active = true;
+    }
+
 }
