@@ -1,5 +1,6 @@
 package cz.cuni.mff.web_crawler_backend.database.controller;
 
+import cz.cuni.mff.web_crawler_backend.crawler.SchedulingConfig;
 import cz.cuni.mff.web_crawler_backend.database.model.Tag;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.database.repository.TagRepository;
@@ -7,7 +8,11 @@ import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordReposito
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 @RestController
 public class Controller {
@@ -17,6 +22,9 @@ public class Controller {
 
     @Autowired
     TagRepository tagRepo;
+
+    @Autowired
+    private SchedulingConfig schedulingConfig;
 
     /* TODO: use this?...when frontend used...needs json type
     @PostMapping("/record")
@@ -28,10 +36,14 @@ public class Controller {
     @PostMapping("/record")
     public void addRecord(@RequestParam("url") String url,
                           @RequestParam("regex") String regex,
-                          @RequestParam("periodicity") String periodicity,
+                          @RequestParam("day") Short day,
+                          @RequestParam("hour") Short hour,
+                          @RequestParam("minute") Short minute,
                           @RequestParam("label") String label){
-        WebsiteRecord wr = new WebsiteRecord(url, regex, periodicity, label);
+        WebsiteRecord wr = new WebsiteRecord(url, regex, day, hour, minute, label);
         wrRepo.save(wr);
+
+        schedulingConfig.scheduleCrawlingTask(wr);
     }
 
     @GetMapping("/record")

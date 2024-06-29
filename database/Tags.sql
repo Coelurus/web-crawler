@@ -10,8 +10,6 @@ INSERT INTO Tags (id, name, wr_id) VALUES
 (0, 'TAG1', 0),
 (1, 'TAG222', 0);
 
-
-SELECT setval(pg_get_serial_sequence('Tags', 'id'), 1, false);
-
+SELECT SETVAL('tags_id_seq', (SELECT MAX(id) FROM Tags) + 1);
 
 COMMIT;
