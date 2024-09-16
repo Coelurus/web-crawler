@@ -3,13 +3,13 @@ START TRANSACTION;
 CREATE TABLE Tags (
   id serial PRIMARY KEY,
   name varchar(255) NOT NULL,
-  wr_id bigint NOT NULL
+  wr_id int NOT NULL
 );
 
 INSERT INTO Tags (id, name, wr_id) VALUES
-(0, 'TAG1', 0),
-(1, 'TAG222', 0);
+(0, 'Uni', 0),
+(1, 'Work', 0);
 
-SELECT SETVAL('tags_id_seq', (SELECT MAX(id) FROM Tags) + 1);
+SELECT setval(pg_get_serial_sequence('Tags', 'id'), (SELECT MAX(id) FROM Tags) + 1);
 
 COMMIT;

@@ -243,6 +243,7 @@ components:
       required:
         - id
         - name
+
       properties:
         id:
           type: integer
@@ -253,6 +254,8 @@ components:
           type: string
           description: Name of the tag
           example: University
+        assigned_to:
+          $ref: "#/components/schemas/WebsiteRecord"
 
     PeriodicityTime:
       description: How often should the crawling happen. Sum of all attributes.
