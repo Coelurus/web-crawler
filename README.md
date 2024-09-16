@@ -21,6 +21,7 @@ Autoři: Adam Řeřicha, Filip Vopálenský
 - Backend jsem ještě nestihl přidat do dockeru (mám málo paměti na C: disku idk proč). Plus si myslím, že to bude pomalé na testování. Tzn. momentálně spouštím backend prostě z InteliJ Idea.
   - Fun fact - má to hot reload (nebo něco takového), takže není nutné pořád vypínat a zapínat projekt při úpravě
 
+
 ## Poznámka pod čarou
 - Pardon je to momentálně dost bordel
 - Nejsou tam ještě komentáře (dodám)

@@ -358,6 +358,6 @@ components:
         links:
           type: array
           items:
-            $ref: "#/components/schemas/CrawledWebsite/properties/id"
+            $ref: "#/components/schemas/CrawledWebsite"
             #ormat: url
             #example: https://cs.wikipedia.org/wiki/Programov%C3%A1n%C3%AD

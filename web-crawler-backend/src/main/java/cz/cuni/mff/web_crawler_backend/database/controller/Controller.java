@@ -23,8 +23,8 @@ public class Controller {
     @Autowired
     TagRepository tagRepo;
 
-    @Autowired
-    private SchedulingConfig schedulingConfig;
+    //@Autowired
+    //private SchedulingConfig schedulingConfig;
 
     /* TODO: use this?...when frontend used...needs json type
     @PostMapping("/record")
@@ -40,10 +40,10 @@ public class Controller {
                           @RequestParam("hour") Short hour,
                           @RequestParam("minute") Short minute,
                           @RequestParam("label") String label){
-        WebsiteRecord wr = new WebsiteRecord(url, regex, day, hour, minute, label);
-        wrRepo.save(wr);
+        //WebsiteRecord wr = new WebsiteRecord(url, regex, day, hour, minute, label);
+        //wrRepo.save(wr);
 
-        schedulingConfig.scheduleCrawlingTask(wr);
+        // schedulingConfig.scheduleCrawlingTask(wr);
     }
 
     @GetMapping("/record")

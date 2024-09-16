@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
+public class SchedulingConfig{}
+/*
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
@@ -25,7 +27,7 @@ public class SchedulingConfig {
 
     private ThreadPoolTaskScheduler taskScheduler;
     private ScheduledTaskRegistrar taskRegistrar;
-    private Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+    private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void scheduleExistingTasks() {
@@ -60,3 +62,6 @@ public class SchedulingConfig {
     }
 
 }
+
+
+ */

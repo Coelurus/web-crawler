@@ -3,7 +3,6 @@ package cz.cuni.mff.web_crawler_backend.database.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -12,37 +11,58 @@ import java.util.List;
 public class WebsiteRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    private String url;
-
-    private String regex;
-
-    //private LocalDateTime periodicity;
-    private Short day;
-
-    private Short hour;
-
-    private Short minute;
-
+    @Column(name = "label")
     private String label;
 
+    @Column(name = "url")
+    private String url;
+
+    @Column(name = "regex")
+    private String boundaryRegExp;
+
+    @OneToOne
+    @JoinColumn(name = "time_id", referencedColumnName = "id", nullable = false)
+    private PeriodicityTime periodicity;
+
+    @Column(name = "active")
     private boolean active;
 
-    public WebsiteRecord(String url, String regex, Short day, Short hour, Short minute, String label) {
-        this.url = url;
-        this.regex = regex;
-        this.day = day;
-        this.hour = hour;
-        this.minute = minute;
+    @ManyToMany
+    @JoinTable(
+            name = "tags",
+            joinColumns = @JoinColumn(name = "wr_id"),
+            inverseJoinColumns = @JoinColumn(name = "id")
+    )
+    private List<Tag> tags;
+
+    @Column(name = "result_record")
+    private Integer crawledData;
+
+    public WebsiteRecord(Long id, String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active, int crawledData) {
+        this.id = id;
         this.label = label;
+        this.url = url;
+        this.boundaryRegExp = boundaryRegExp;
+        this.periodicity = periodicity;
+        this.active = active;
+        this.crawledData = crawledData;
     }
 
-    public Long getIntervalSeconds(){
-        return (long) (day * 24 * 60 * 60 + hour * 60 * 60 + minute * 60);
+    public WebsiteRecord() {
+
     }
-    public WebsiteRecord() {}
 
-
-
+    public WebsiteRecord update(WebsiteRecord newWR){
+        id = newWR.getId();
+        label = newWR.getLabel();
+        url = newWR.getUrl();
+        boundaryRegExp = newWR.getBoundaryRegExp();
+        periodicity = newWR.getPeriodicity();
+        active = newWR.isActive();
+        crawledData = newWR.getCrawledData();
+        return this;
+    }
 }

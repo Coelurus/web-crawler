@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface WebsiteRecordRepository extends JpaRepository<WebsiteRecord, Long> {
+    WebsiteRecord findById(long id);
 }
