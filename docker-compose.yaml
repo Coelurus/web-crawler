@@ -12,6 +12,10 @@ services:
     volumes:
       - ./database/WebsiteRecords.sql:/docker-entrypoint-initdb.d/WebsiteRecords.sql
       - ./database/Tags.sql:/docker-entrypoint-initdb.d/Tags.sql
+      - ./database/CrawlLinks.sql:/docker-entrypoint-initdb.d/CrawlLinks.sql
+      - ./database/CrawlResults.sql:/docker-entrypoint-initdb.d/CrawlResults.sql
+      - ./database/Executions.sql:/docker-entrypoint-initdb.d/Executions.sql
+      - ./database/PeriodicityTimes.sql:/docker-entrypoint-initdb.d/PeriodicityTimes.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -q -h localhost -U user -d webcrawler" ]
       timeout: 5s
