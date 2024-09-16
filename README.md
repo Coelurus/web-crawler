@@ -1,4 +1,4 @@
-# Epicc webcrawler
+# Webcrawler project
 Autoři: Adam Řeřicha, Filip Vopálenský
 
 ## Architektura (velmi velmi zjednodušeně)
