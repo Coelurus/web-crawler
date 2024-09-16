@@ -10,7 +10,7 @@ import java.util.List;
 @RestController
 public class WebsiteRecordController {
 
-    private WebsiteRecordRepository websiteRecordRepository;
+    private final WebsiteRecordRepository websiteRecordRepository;
 
     @Autowired
     public WebsiteRecordController(WebsiteRecordRepository websiteRecordRepository) {

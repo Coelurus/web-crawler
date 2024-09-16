@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create WebsiteRecord</title>
+</head>
+<body>
+<h1>Create WebsiteRecord</h1>
+<form id="create-form">
+    <label for="label">Label:</label>
+    <input type="text" id="label" name="label" required><br><br>
+
+    <label for="url">URL:</label>
+    <input type="text" id="url" name="url" required><br><br>
+
+    <label for="boundaryRegExp">Boundary RegExp:</label>
+    <input type="text" id="boundaryRegExp" name="boundaryRegExp" required><br><br>
+
+    <label for="periodicity">Periodicity Time ID:</label>
+    <input type="number" id="periodicity" name="periodicity" required><br><br>
+
+    <label for="active">Active:</label>
+    <input type="checkbox" id="active" name="active"><br><br>
+
+    <label for="crawledData">Crawled Data:</label>
+    <input type="number" id="crawledData" name="crawledData" required><br><br>
+
+    <button type="button" onclick="createRecord()">Create</button>
+</form>
+
+<script>
+    function createRecord() {
+        const form = document.getElementById('create-form');
+        const data = new FormData(form);
+        const record = Object.fromEntries(data.entries());
+        fetch('/websites', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(record)
+        })
+            .then(response => response.json())
+            .then(data => alert('Record created: ' + JSON.stringify(data)))
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
