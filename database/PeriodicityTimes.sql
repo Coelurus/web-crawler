@@ -1,7 +1,7 @@
 START TRANSACTION;
 
 CREATE TABLE PeriodicityTimes (
-  id serial PRIMARY KEY,
+  id bigserial PRIMARY KEY,
   minute integer NOT NULL,
   hour integer NOT NULL,
   day integer NOT NULL

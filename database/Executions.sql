@@ -1,8 +1,8 @@
 START TRANSACTION;
 
 CREATE TABLE Executions (
-  id serial PRIMARY KEY,
-  wr_id int NOT NULL,
+  id bigserial PRIMARY KEY,
+  wr_id bigint NOT NULL,
   status varchar(255) NOT NULL,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ,

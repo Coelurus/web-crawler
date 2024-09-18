@@ -1,9 +1,9 @@
 START TRANSACTION;
 
 CREATE TABLE Tags (
-  id serial PRIMARY KEY,
+  id bigserial PRIMARY KEY,
   name varchar(255) NOT NULL,
-  wr_id int NOT NULL
+  wr_id bigint NOT NULL
 );
 
 INSERT INTO Tags (id, name, wr_id) VALUES

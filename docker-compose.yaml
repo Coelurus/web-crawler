@@ -1,5 +1,30 @@
 version: '3.8'
 services:
+  backend:
+    build:
+      context: "./web-crawler-backend/"
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/webcrawler
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=docker
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://backend:8080/websites || exit 1"
+        ]
+      timeout: 5s
+      interval: 10s
+      retries: 10
+
+
   database:
     image: postgres:16.2
     environment:
