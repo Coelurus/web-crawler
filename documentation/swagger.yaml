@@ -26,7 +26,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/WebsiteRecord"
+                  $ref: "#/components/schemas/WebsiteRecordOut"
     post:
       tags:
         - website records
@@ -36,18 +36,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/WebsiteRecord"
+              $ref: "#/components/schemas/WebsiteRecordIn"
       responses:
         "201":
           description: Website record created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WebsiteRecord"
+                $ref: "#/components/schemas/WebsiteRecordOut"
         "400":
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: Validation exception
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /websites/{id}:
     get:
@@ -68,9 +76,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/WebsiteRecord"
+                $ref: "#/components/schemas/WebsiteRecordOut"
         "404":
           description: Website record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     put:
       summary: Update a website record by ID
       tags:
@@ -87,12 +99,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/WebsiteRecord"
+              $ref: "#/components/schemas/WebsiteRecordIn"
       responses:
         "200":
           description: Website record updated
         "404":
           description: Website record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       summary: Remove a website record by ID
       description: Remove a website record and all associated executions
@@ -151,6 +167,10 @@ paths:
                 $ref: "#/components/schemas/Execution"
         "404":
           description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /execute/{wr_id}:
     post:
@@ -175,6 +195,10 @@ paths:
                 $ref: "#/components/schemas/Execution"
         "404":
           description: Website record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /tags:
     get:
@@ -193,7 +217,55 @@ paths:
 
 components:
   schemas:
-    WebsiteRecord:
+    WebsiteRecordIn:
+      type: object
+      required:
+        - id
+        - label
+        - url
+        - boundaryRegExp
+        - periodicity
+        - active
+        - tags
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier for the website record
+          example: 3
+        label:
+          type: string
+          description: User given label
+          example: Webiku webiku ukaž svá tajemství!
+        url:
+          type: string
+          format: url
+          description: Starting URL for the crawler.
+          example: https://webik.ms.mff.cuni.cz/nswi153/seminar-project-webcrawler.html
+        boundaryRegExp:
+          type: string
+          description: Regular expression used to limit which links are crawled.
+          example: .*wiki.*
+        periodicity:
+          type: string
+          example: 1:20:00
+          description: How often should the crawling happen.
+        active:
+          type: boolean
+          description: Whether crawler is currently active.
+          example: true
+        tags:
+          description: Array of tags assigned to record.
+          type: array
+          items:
+            type: string
+            example: UNI
+        crawledData:
+          type: integer
+          format: int64
+          description: Id of data with crawling results
+
+    WebsiteRecordOut:
       type: object
       required:
         - id
@@ -255,7 +327,10 @@ components:
           description: Name of the tag
           example: University
         assigned_to:
-          $ref: "#/components/schemas/WebsiteRecord"
+          type: integer
+          format: int64
+          example: 1
+          description: Id of website record to which is this tag assigned
 
     PeriodicityTime:
       description: How often should the crawling happen. Sum of all attributes.
@@ -304,8 +379,10 @@ components:
           description: Unique identifier of execution
           example: 9
         website:
-          $ref: "#/components/schemas/WebsiteRecord"
-          description: Website record for which execution was created
+          type: integer
+          format: int64
+          description: Id of website record for which execution was created
+          example: 1
         status:
           type: string
           enum: [pending, in_progress, completed, failed]
@@ -356,8 +433,36 @@ components:
           format: time
           example: 00:12:32
         links:
+          description: List of ids of CrawlWebsite that are children of the CW
           type: array
           items:
-            $ref: "#/components/schemas/CrawledWebsite"
-            #ormat: url
-            #example: https://cs.wikipedia.org/wiki/Programov%C3%A1n%C3%AD
+            type: integer
+            format: int64
+
+    ErrorResponse:
+      description: Response returned to user on error
+      type: object
+      required:
+        - errors
+      properties:
+        errors:
+          description: array of all errors that happened
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+
+    ErrorDetail:
+      description: Concrete information about one error
+      type: object
+      required:
+        - code
+        - scope
+      properties:
+        code:
+          description: Information about what happened
+          type: string
+          example: FIELD_INVALID
+        scope:
+          description: Information about where it happened
+          type: string
+          example: label

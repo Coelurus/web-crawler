@@ -3,11 +3,12 @@ package cz.cuni.mff.web_crawler_backend.database.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @Entity
-@Table(name="websiterecords")
+@Table(name = "websiterecords")
 public class WebsiteRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,21 +42,20 @@ public class WebsiteRecord {
     @Column(name = "result_record")
     private Integer crawledData;
 
-    public WebsiteRecord(Long id, String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active, int crawledData) {
-        this.id = id;
+    public WebsiteRecord(String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active) {
         this.label = label;
         this.url = url;
         this.boundaryRegExp = boundaryRegExp;
         this.periodicity = periodicity;
         this.active = active;
-        this.crawledData = crawledData;
+        this.tags = new ArrayList<>();
     }
 
     public WebsiteRecord() {
 
     }
 
-    public WebsiteRecord update(WebsiteRecord newWR){
+    public WebsiteRecord update(WebsiteRecord newWR) {
         id = newWR.getId();
         label = newWR.getLabel();
         url = newWR.getUrl();

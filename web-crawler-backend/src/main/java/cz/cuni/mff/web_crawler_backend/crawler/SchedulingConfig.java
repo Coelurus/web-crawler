@@ -1,6 +1,8 @@
 package cz.cuni.mff.web_crawler_backend.crawler;
 
+import cz.cuni.mff.web_crawler_backend.database.model.Execution;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
+import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,39 +16,40 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
-public class SchedulingConfig{}
-/*
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
-    @Autowired
-    private WebsiteRecordRepository wrRepo;
-
-    @Autowired
+    private WebsiteRecordRepository websiteRecordRepository;
     private CrawlerService crawlerService;
-
+    private ExecutionRepository executionRepository;
     private ThreadPoolTaskScheduler taskScheduler;
-    private ScheduledTaskRegistrar taskRegistrar;
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
-    @PostConstruct
-    public void scheduleExistingTasks() {
-        List<WebsiteRecord> tasks = wrRepo.findAll();
-        for (WebsiteRecord task : tasks) {
-            scheduleCrawlingTask(task);
-        }
+    @Autowired
+    public SchedulingConfig(WebsiteRecordRepository websiteRecordRepository,
+                            CrawlerService crawlerService,
+                            ExecutionRepository executionRepository,
+                            ThreadPoolTaskScheduler taskScheduler) {
+        this.websiteRecordRepository = websiteRecordRepository;
+        this.crawlerService = crawlerService;
+        this.executionRepository = executionRepository;
+        this.taskScheduler = taskScheduler;
     }
 
-    public void scheduleCrawlingTask(WebsiteRecord task) {
-        Runnable crawlingTask = () -> crawlerService.crawl(task.getUrl(), task.getRegex());
+    public void scheduleCrawlingTask(Execution execution) {
+        System.out.println("Scheduling crawling");
+
+        Runnable crawlingTask = () -> crawlerService.crawl(
+                execution.getWebsite().getUrl(), execution.getWebsite().getBoundaryRegExp());
+
         ScheduledFuture<?> scheduledFuture = taskScheduler.scheduleAtFixedRate(
                 crawlingTask,
-                task.getIntervalSeconds() * 1000
+                execution.getWebsite().getPeriodicity().getTimeInSeconds() * 1000
         );
 
-        // Save the scheduled task for potential future cancellation
-        scheduledTasks.put(task.getId(), scheduledFuture);
+        scheduledTasks.put(execution.getId(), scheduledFuture);
     }
+
 
     public void cancelCrawlingTask(Long taskId) {
         ScheduledFuture<?> scheduledTask = scheduledTasks.get(taskId);
@@ -56,12 +59,18 @@ public class SchedulingConfig {
         }
     }
 
-    @Autowired
-    public void configureTaskScheduler(ThreadPoolTaskScheduler taskScheduler) {
-        this.taskScheduler = taskScheduler;
+}
+/*
+
+
+    @PostConstruct
+    public void scheduleExistingTasks() {
+        List<WebsiteRecord> tasks = wrRepo.findAll();
+        for (WebsiteRecord task : tasks) {
+            scheduleCrawlingTask(task);
+        }
     }
 
-}
 
 
  */

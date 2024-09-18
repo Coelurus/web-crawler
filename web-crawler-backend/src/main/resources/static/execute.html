@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Execution</title>
+</head>
+<body>
+<h1>Test Execution Creation</h1>
+<form>
+    <label for="wr_id">Website Record ID:</label>
+    <input type="number" id="wr_id" name="wr_id" required>
+    <button type="submit" onclick="execute()">Start Execution</button>
+</form>
+
+<script>
+    function execute() {
+        const wr_id = document.getElementById('wr_id').value;
+        fetch(`/execute/${wr_id}`, {
+            method: 'POST'
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('EXECUTED');
+                } else {
+                    alert('upsies');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+</script>
+</body>
+</html>
