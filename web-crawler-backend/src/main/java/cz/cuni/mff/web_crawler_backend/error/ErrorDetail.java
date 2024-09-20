@@ -1,4 +1,4 @@
-package cz.cuni.mff.web_crawler_backend.exception;
+package cz.cuni.mff.web_crawler_backend.error;
 
 import lombok.Data;
 

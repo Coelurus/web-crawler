@@ -1,5 +1,8 @@
-package cz.cuni.mff.web_crawler_backend.exception;
+package cz.cuni.mff.web_crawler_backend.error;
 
+import cz.cuni.mff.web_crawler_backend.error.exception.FieldValidationException;
+import cz.cuni.mff.web_crawler_backend.error.exception.InternalServerException;
+import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

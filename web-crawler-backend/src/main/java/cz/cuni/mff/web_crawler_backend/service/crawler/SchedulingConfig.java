@@ -1,17 +1,13 @@
-package cz.cuni.mff.web_crawler_backend.crawler;
+package cz.cuni.mff.web_crawler_backend.service.crawler;
 
 import cz.cuni.mff.web_crawler_backend.database.model.Execution;
-import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;

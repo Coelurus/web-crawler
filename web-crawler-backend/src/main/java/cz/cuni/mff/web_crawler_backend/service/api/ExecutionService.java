@@ -1,43 +1,39 @@
-package cz.cuni.mff.web_crawler_backend.controller;
+package cz.cuni.mff.web_crawler_backend.service.api;
 
-import cz.cuni.mff.web_crawler_backend.crawler.SchedulingConfig;
 import cz.cuni.mff.web_crawler_backend.database.model.Execution;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
-import cz.cuni.mff.web_crawler_backend.exception.NotFoundException;
+import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
+import cz.cuni.mff.web_crawler_backend.service.crawler.SchedulingConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 
-@RestController
-public class ExecutionController {
-
-    ExecutionRepository executionRepository;
-    WebsiteRecordRepository websiteRecordRepository;
-    private SchedulingConfig schedulingConfig;
+@Service
+public class ExecutionService {
+    private final ExecutionRepository executionRepository;
+    private final WebsiteRecordRepository websiteRecordRepository;
+    private final SchedulingConfig schedulingConfig;
 
     @Autowired
-    public ExecutionController(ExecutionRepository executionRepository,
-                               WebsiteRecordRepository websiteRecordRepository,
-                               SchedulingConfig schedulingConfig) {
+    public ExecutionService(ExecutionRepository executionRepository,
+                            WebsiteRecordRepository websiteRecordRepository,
+                            SchedulingConfig schedulingConfig) {
         this.executionRepository = executionRepository;
         this.websiteRecordRepository = websiteRecordRepository;
         this.schedulingConfig = schedulingConfig;
     }
 
-
     /**
-     * Returns all executions stored in database
+     * Returns all execution from database possibly filtered by ID of website record that executed them
      *
-     * @param websiteId Optional parameter. When set method returns only executions whose website has this id
-     * @return List of executions
+     * @param websiteId Optional parameter defining with which websiteId should be execution returned
+     * @return list of executions
      */
-    @GetMapping(value = "/executions")
-    ResponseEntity<List<Execution>> getExecutions(@RequestParam(name = "websiteId", required = false) Long websiteId) {
+    public ResponseEntity<List<Execution>> getExecutions(Long websiteId) {
         if (websiteId != null) {
             return ResponseEntity.ok(executionRepository.findByWebsiteId(websiteId));
         }
@@ -51,8 +47,7 @@ public class ExecutionController {
      * @return Found execution
      * @throws NotFoundException when no execution has parameter id
      */
-    @GetMapping(value = "/executions/{id}")
-    ResponseEntity<Execution> getExecution(@PathVariable int id) {
+    public ResponseEntity<Execution> getExecution(int id) {
         Execution ex = executionRepository.findById(id).orElse(null);
         if (ex == null) {
             throw new NotFoundException("NOT_FOUND", "Execution");
@@ -61,15 +56,14 @@ public class ExecutionController {
     }
 
     /**
-     * Manually trigger a new execution for a given website record
+     * Trigger new execution for a given website record
      *
-     * @param wr_id ID of website record to execute
+     * @param wrId ID of website record to execute
      * @return new execution object
      * @throws NotFoundException when no website record has parameter id
      */
-    @PostMapping(value = "/execute/{wr_id}")
-    ResponseEntity<Execution> startExecution(@PathVariable int wr_id) {
-        WebsiteRecord wr = websiteRecordRepository.findById(wr_id).orElse(null);
+    public ResponseEntity<Execution> startExecution(int wrId) {
+        WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElse(null);
         if (wr == null) {
             throw new NotFoundException("NOT_FOUND", "WebsiteRecord");
         }
@@ -77,6 +71,5 @@ public class ExecutionController {
         schedulingConfig.scheduleCrawlingTask(ex);
         return ResponseEntity.ok(ex);
     }
-
 
 }

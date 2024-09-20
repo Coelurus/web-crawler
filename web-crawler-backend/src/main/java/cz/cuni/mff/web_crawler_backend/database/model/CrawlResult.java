@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="crawlresults")
-public class CrawledWebsite {
+@Table(name = "crawlresults")
+public class CrawlResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")

@@ -1,6 +1,6 @@
 package cz.cuni.mff.web_crawler_backend.database.model;
 
-import cz.cuni.mff.web_crawler_backend.exception.FieldValidationException;
+import cz.cuni.mff.web_crawler_backend.error.exception.FieldValidationException;
 import jakarta.persistence.*;
 import lombok.Data;
 

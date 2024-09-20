@@ -1,4 +1,4 @@
-package cz.cuni.mff.web_crawler_backend.crawler;
+package cz.cuni.mff.web_crawler_backend.service.crawler;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
