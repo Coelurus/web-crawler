@@ -1,8 +1,10 @@
 START TRANSACTION;
 
-CREATE TABLE CrawlLinks (
-  parent_id bigint NOT NULL,
-  son_id bigint NOT NULL
+CREATE TABLE CrawlLinks
+(
+    id      bigserial PRIMARY KEY,
+    from_id bigint NOT NULL,
+    to_id   bigint NOT NULL
 );
 
 COMMIT;
