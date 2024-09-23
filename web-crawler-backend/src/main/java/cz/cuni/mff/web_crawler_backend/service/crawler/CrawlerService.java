@@ -2,8 +2,10 @@ package cz.cuni.mff.web_crawler_backend.service.crawler;
 
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlLink;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
+import cz.cuni.mff.web_crawler_backend.database.model.Execution;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
+import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,40 +26,54 @@ public class CrawlerService {
 
     private final CrawlResultRepository crawlResultRepository;
     private final CrawlLinkRepository crawlLinkRepository;
+    private final ExecutionRepository executionRepository;
 
     @Autowired
     public CrawlerService(CrawlResultRepository crawlResultRepository,
-                          CrawlLinkRepository crawlLinkRepository) {
+                          CrawlLinkRepository crawlLinkRepository,
+                          ExecutionRepository executionRepository) {
         this.crawlResultRepository = crawlResultRepository;
         this.crawlLinkRepository = crawlLinkRepository;
+        this.executionRepository = executionRepository;
     }
 
-    public void crawl(List<CrawlResult> queue, String regexp, Long executionId) {
+    /**
+     * Go through page and find all links. Save them. And go through them. Rinse and repeat
+     *
+     * @param queue     Queue of pages that have to be crawled
+     * @param regexp    Regular expression by which page links are matched
+     * @param execution Execution object that has invoked this crawling
+     */
+    public void crawl(List<CrawlResult> queue, String regexp, Execution execution) {
+        execution.setStatus("STARTED");
+        executionRepository.save(execution);
+        try {
+            goThroughCrawlQueue(queue, regexp, execution);
+        } catch (Exception e) {
+            execution.setStatus("FAILED");
+        }
+        executionRepository.save(execution);
+    }
+
+    /**
+     * Goes through queue of queued crawl requests and controls resolving situations
+     *
+     * @param queue     Queue of pages that have to be crawled
+     * @param regexp    Regular expression by which page links are matched
+     * @param execution Execution object that has invoked this crawling
+     */
+    private void goThroughCrawlQueue(List<CrawlResult> queue, String regexp, Execution execution) {
         while (!queue.isEmpty()) {
             CrawlResult crawlResult = queue.removeFirst();
 
             Pattern pattern = Pattern.compile(regexp);
 
             LocalDateTime startTime = LocalDateTime.now();
-            crawlResult.setExecutionId(executionId);
+            crawlResult.setExecutionId(execution.getId());
 
             try {
-                Document doc = Jsoup.connect(crawlResult.getUrl()).get();
-                String title = doc.title();
-
-                if (title.length() > 255) {
-                    System.out.println("STOP");
-                }
-
-                if (title.isEmpty()) {
-                    crawlResult.setTitle(crawlResult.getUrl());
-                } else {
-                    crawlResult.setTitle(doc.title());
-                }
-                doc.select("a").forEach(resolveLink(queue, executionId, pattern, crawlResult));
-                crawlResult.setSearched();
-
-            } catch (IOException e) {
+                readDataFromPage(queue, execution, crawlResult, pattern);
+            } catch (IOException | IllegalArgumentException e) {
                 crawlResult.setTitle("INACCESSIBLE");
                 crawlResult.setState("INACCESSIBLE");
             }
@@ -69,6 +85,31 @@ public class CrawlerService {
 
             crawlResultRepository.save(crawlResult);
         }
+        execution.setStatus("FINISHED");
+    }
+
+    /**
+     * Load web page, parse it and collect important data
+     *
+     * @param queue       Queue of pages that have to be crawled
+     * @param execution   Execution object that has invoked this crawling
+     * @param crawlResult Information about progress of crawling this page
+     * @param pattern     Pattern by which page links are matched
+     * @throws IOException When page cannot be accessed
+     */
+    private void readDataFromPage(List<CrawlResult> queue, Execution execution, CrawlResult crawlResult, Pattern pattern) throws IOException {
+        Document doc = Jsoup.connect(crawlResult.getUrl()).get();
+        String title = doc.title();
+
+        if (title.length() > 255) {
+            crawlResult.setTitle(title.substring(0, 252) + "...");
+        } else if (title.isEmpty()) {
+            crawlResult.setTitle(crawlResult.getUrl());
+        } else {
+            crawlResult.setTitle(doc.title());
+        }
+        doc.select("a").forEach(resolveLink(queue, execution.getId(), pattern, crawlResult));
+        crawlResult.setSearched();
     }
 
     /**
@@ -84,29 +125,88 @@ public class CrawlerService {
                                           Pattern pattern, CrawlResult crawlResult) {
         return a -> {
             String href = a.attr("abs:href");
-            // Processing only absolute paths
+            // Skip anchors to another part of same page
             if (!href.startsWith("#")) {
+
+                href = stripHref(href);
 
                 Matcher matcher = pattern.matcher(href);
 
-                if (!crawlResultRepository.existsByUrlAndExecutionId(href, executionId)) {
-
-                    CrawlResult son = new CrawlResult(href, "TO BE MATCHED", executionId);
-                    if (matcher.find()) {
-                        son.setState("TO BE SEARCHED");
-                        queue.add(son);
-                    } else {
-                        son.setState("NOT MATCHED");
-                        son.setTitle("NOT MATCHED");
-                    }
-
+                // TODO resolve too long  urls
+                if (href.length() > 255) {
+                    CrawlResult son = new CrawlResult(href.substring(0, 252) + "...",
+                            "URL TOO LONG", executionId);
                     crawlResultRepository.save(son);
                     crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), son.getId()));
+                    return;
+                }
+
+                if (!crawlResultRepository.existsByUrlAndExecutionId(href, executionId)) {
+
+                    resolveNewNode(queue, executionId, crawlResult, href, matcher);
                 } else {
-                    CrawlResult target = crawlResultRepository.findByUrlAndExecutionId(href, executionId);
-                    crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), target.getId()));
+                    resolveExistingNode(executionId, crawlResult, href);
                 }
             }
         };
+    }
+
+    /**
+     * Resolve behaviour when is found link to found page
+     *
+     * @param executionId ID of execution object that has invoked this crawling
+     * @param crawlResult Object for saving data about crawl at current page
+     * @param href        Address of a page found on current page
+     */
+    private void resolveExistingNode(Long executionId, CrawlResult crawlResult, String href) {
+        CrawlResult target = crawlResultRepository.findByUrlAndExecutionId(href, executionId);
+        if (!crawlLinkRepository.existsByFromAndTo(crawlResult.getId(), target.getId()) &&
+                !Objects.equals(crawlResult.getId(), target.getId())) {
+            crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), target.getId()));
+        }
+    }
+
+    /**
+     * Resolve behaviour when is found link to page that is not stored in db yet.
+     *
+     * @param queue       Queue of all pages that have to be crawled
+     * @param executionId ID of execution object that has invoked this crawling
+     * @param crawlResult Object for saving data about crawl at current page
+     * @param href        Address of a page found on current page
+     * @param matcher     Object processing matching patterns to strings
+     */
+    private void resolveNewNode(List<CrawlResult> queue, Long executionId, CrawlResult crawlResult, String href, Matcher matcher) {
+        CrawlResult son = new CrawlResult(href, "TO BE MATCHED", executionId);
+        if (matcher.find()) {
+            son.setState("TO BE SEARCHED");
+            queue.add(son);
+        } else {
+            son.setState("NOT MATCHED");
+            son.setTitle("NOT MATCHED");
+        }
+
+        crawlResultRepository.save(son);
+        crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), son.getId()));
+    }
+
+    /**
+     * Get href and get rid of in page '#' tags and of query parameters behind `?`
+     *
+     * @param href Link to be stripped
+     * @return Stripped link without target destination and path parameters
+     */
+    private static String stripHref(String href) {
+        // Get rid of inner page pointer
+        int targetIdx = href.indexOf("#");
+        if (targetIdx != -1) {
+            href = href.substring(0, targetIdx);
+        }
+
+        // Get rid of query parameters??
+        int paramIdx = href.indexOf("?");
+        if (paramIdx != -1) {
+            href = href.substring(0, paramIdx);
+        }
+        return href;
     }
 }

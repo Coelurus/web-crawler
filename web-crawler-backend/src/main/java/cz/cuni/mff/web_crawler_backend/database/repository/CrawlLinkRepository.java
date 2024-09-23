@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CrawlLinkRepository extends JpaRepository<CrawlLink, Long> {
+    boolean existsByFromAndTo(Long from, Long to);
 }

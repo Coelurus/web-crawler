@@ -52,7 +52,7 @@ public class SchedulingConfig {
         Duration period = Duration.ofSeconds(execution.getWebsite().getPeriodicity().getTimeInSeconds() * 1000);
         String regexp = execution.getWebsite().getBoundaryRegExp();
 
-        Runnable crawlingTask = () -> crawlerService.crawl(queue, regexp, execution.getId());
+        Runnable crawlingTask = () -> crawlerService.crawl(queue, regexp, execution);
         ScheduledFuture<?> scheduledFuture = taskScheduler.scheduleWithFixedDelay(crawlingTask, period);
 
         scheduledTasks.put(execution.getId(), scheduledFuture);
