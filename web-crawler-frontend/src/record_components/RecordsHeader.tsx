@@ -1,6 +1,6 @@
 import { ChangeEvent } from "react";
 
-export default function Filter({ url, label, tags, setUrl, setLabel}: {
+export default function RecordsHeader({ url, label, tags, setUrl, setLabel}: {
     url:string, label:string, tags:Array<string>, 
     setUrl:(e: ChangeEvent<HTMLInputElement>) => void, 
     setLabel:(e: ChangeEvent<HTMLInputElement>) => void,
@@ -16,8 +16,8 @@ export default function Filter({ url, label, tags, setUrl, setLabel}: {
             </label>
             <label htmlFor="tags">Tags: 
                 <span id="tags">
-                    {tags && tags.map((tag:string) =>(
-                        <span>{tag}, </span>
+                    {tags.map((tag:string) =>(
+                        <span key={tag}>{tag}, </span>
                     ))}
                 </span>
             </label>

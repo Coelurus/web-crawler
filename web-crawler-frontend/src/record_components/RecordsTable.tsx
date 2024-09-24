@@ -1,6 +1,21 @@
 import Record from './Record'
 import '../css/table.css'
-export default function RecordsTable({records}: {records:Array<Record>}){
+import { useState } from 'react'
+export default function RecordsTable({records, sortByUrl}: {records:Array<Record>, sortByUrl:boolean}){
+    const itemsPerPage = 3
+    const [currentPage, setCurrentPage] = useState(1)
+
+    const betterCurrentItems = records.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
+
+    // sort by url
+    if (sortByUrl){
+        records.sort((a,b) => a.url.localeCompare(b.url))
+    }
+    
+    function calcPageCount(itemsPerPage:number, itemsCount:number): number{
+        if (itemsCount%itemsPerPage === 0) return itemsCount/itemsPerPage
+        return Math.floor(itemsCount/itemsPerPage)+1
+    }
     return(
         <>
             <table>
@@ -17,8 +32,8 @@ export default function RecordsTable({records}: {records:Array<Record>}){
                     </tr>
                 </thead>
                 <tbody>
-                    {records && records.map((record:Record) =>(
-                        <tr>
+                    {betterCurrentItems.map((record:Record) =>(
+                        <tr key={record.id}>
                             <td>{record.label}</td>
                             <td>{record.tags}</td>
                             <td>{record.periodicity}</td>
@@ -31,6 +46,18 @@ export default function RecordsTable({records}: {records:Array<Record>}){
                     ))}
                 </tbody>
             </table>
+
+            <div>
+                <span id='curr-page'>page: {currentPage}</span><br/>
+                {currentPage !== 1 &&
+                    <button id="prev-btn" onClick={() => setCurrentPage(currentPage-1)}>Previous</button>
+                }
+                {currentPage !== calcPageCount(itemsPerPage, records.length) &&
+                    <button id="next-btn" onClick={() => setCurrentPage(currentPage+1)}>Next</button>
+                }<br/>
+                page count: <span id="page-count">{calcPageCount(itemsPerPage, records.length)}</span>
+                
+            </div>
         </>
     )
 }
