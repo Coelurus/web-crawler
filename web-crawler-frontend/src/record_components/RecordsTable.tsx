@@ -17,9 +17,9 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
         return Math.floor(itemsCount/itemsPerPage)+1
     }
 
-    function deleteRecord(id:number){
+    // function deleteRecord(id:number){
 
-    }
+    // }
     return(
         <>
             <table>
@@ -40,14 +40,14 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                         <tr key={record.id}>
                             <td>{record.label}</td>
                             <td>{record.tags.map(tag => (
-                                <span key={tag.id} className='tag'>{tag.name}</span>
+                                <span key={tag} className='tag'>{tag}</span>
                             ))}</td>
                             <td>{record.periodicity}</td>
                             <td>{record.timeOfExecution}</td>
                             <td>{record.lastExecution.toDateString()}</td>
                             <td><input type="checkbox" name="" id={'checkbox-' + record.id} /></td>
                             <td><button>Edit</button></td>
-                            <td><button onClick={() => deleteRecord(record.id)}>Delete</button></td>
+                            <td><button>Delete</button></td>
                         </tr>
                     ))}
                 </tbody>
@@ -65,7 +65,7 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                             
                         }}>Previous</button>
                 }
-                {currentPage !== calcPageCount(itemsPerPage, searchRecords.length) &&
+                {currentPage <= calcPageCount(itemsPerPage, searchRecords.length) &&
                     <button id="next-btn" onClick={() => 
                         {
                         if (currentPage > calcPageCount(itemsPerPage, searchRecords.length))
@@ -75,7 +75,6 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                         
                         }}>Next</button>
                 }<br/>
-                {currentPage > calcPageCount(itemsPerPage, searchRecords.length)}
                 page count: <span id="page-count">{calcPageCount(itemsPerPage, searchRecords.length)}</span>
                 
             </div>

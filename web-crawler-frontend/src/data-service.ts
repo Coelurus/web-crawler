@@ -5,11 +5,13 @@ import Tag from "./record_components/Tag";
 
 
 export async function fetchRecords(): Promise<Record[]>{
-    const responseWebsites = await fetch("./api/websites")
+    const responseWebsites = await fetch("http://localhost:8080/websites")
+    console.log(responseWebsites)
     const records = await responseWebsites.json()
-    const responseExecs = await fetch("./api/executions")
-    const executions = await responseExecs.json()
+    // const responseExecs = await fetch("./api/executions")
+    // const executions = await responseExecs.json()
 
+    
     return records
 }
 export async function fetchTags(): Promise<Tag[]>{

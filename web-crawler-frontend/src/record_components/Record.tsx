@@ -1,4 +1,3 @@
-import Tag from "./Tag";
 
 export default class Record{
     public id:number;
@@ -6,11 +5,11 @@ export default class Record{
     public url: string;
     public boundaryRegEx: string;
     public periodicity: string;
-    public tags:Array<Tag>
+    public tags:Array<string>
     public lastExecution:Date
     public timeOfExecution:string
 
-    public constructor(id:number, label:string, url:string, boundaryRegEx:string, periodicity:string, tags:Array<Tag>, lastExecution:Date, timeOfExecution:string){
+    public constructor(id:number, label:string, url:string, boundaryRegEx:string, periodicity:string, tags:Array<string>, lastExecution:Date, timeOfExecution:string){
         this.id = id;
         this.label = label;
         this.url = url;

@@ -46,3 +46,16 @@ services:
       timeout: 5s
       interval: 10s
       retries: 10
+
+
+
+  # frontend:
+  #   build:
+  #     context: "./web-crawler-frontend/"
+  #   restart: always
+  #   ports:
+  #     - ${GATEWAY_PORT-8000}:80
+  #   depends_on:
+  #     - backend
+  #   environment:
+  #     SERVER_URL: http://backend
