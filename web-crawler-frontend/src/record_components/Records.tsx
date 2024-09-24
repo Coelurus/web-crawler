@@ -5,6 +5,8 @@ import RecordsHeader from './RecordsHeader'
 import RecordsTable from './RecordsTable'
 import Record from './Record'
 
+import { fetchRecords } from '../data-service'
+
 export default function Records(){
     const [url, setUrl] = useState('')
     const [label, setLabel] = useState('')
@@ -12,9 +14,6 @@ export default function Records(){
     const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
     //TODO: sort by
 
-
-    //TODO: pagination
-   
 
     const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
       setUrl(e.target.value)
@@ -41,14 +40,19 @@ export default function Records(){
     return (
       <>
         <RecordsHeader 
-            url={url} 
-            label={label} 
-            tags={tags} 
-            setUrl={handleUrlChange} 
-            setLabel={handleLableChange} 
-            setTags={handleTagsChange}
+          url={url} 
+          label={label} 
+          tags={tags} 
+          setUrl={handleUrlChange} 
+          setLabel={handleLableChange} 
+          setTags={handleTagsChange}
         />
-        <RecordsTable records={records} sortByUrl={sortByUrl}/>
+        <RecordsTable 
+          records={records} 
+          sortByUrl={sortByUrl} 
+          searchLabel={label} 
+          searchUrl={url}
+        />
 
       </>
     )

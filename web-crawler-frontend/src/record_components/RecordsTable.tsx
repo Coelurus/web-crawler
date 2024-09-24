@@ -1,11 +1,12 @@
 import Record from './Record'
 import '../css/table.css'
 import { useState } from 'react'
-export default function RecordsTable({records, sortByUrl}: {records:Array<Record>, sortByUrl:boolean}){
+export default function RecordsTable({records, sortByUrl, searchLabel, searchUrl}: {records:Array<Record>, sortByUrl:boolean, searchLabel:string, searchUrl:string}){
     const itemsPerPage = 3
     const [currentPage, setCurrentPage] = useState(1)
 
-    const betterCurrentItems = records.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
+    const searchRecords = records.filter(record => record.label.includes(searchLabel) && record.url.includes(searchUrl))
+    const currentItems = searchRecords.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
 
     // sort by url
     if (sortByUrl){
@@ -32,7 +33,7 @@ export default function RecordsTable({records, sortByUrl}: {records:Array<Record
                     </tr>
                 </thead>
                 <tbody>
-                    {betterCurrentItems.map((record:Record) =>(
+                    {currentItems.map((record:Record) =>(
                         <tr key={record.id}>
                             <td>{record.label}</td>
                             <td>{record.tags}</td>
@@ -50,12 +51,27 @@ export default function RecordsTable({records, sortByUrl}: {records:Array<Record
             <div>
                 <span id='curr-page'>page: {currentPage}</span><br/>
                 {currentPage !== 1 &&
-                    <button id="prev-btn" onClick={() => setCurrentPage(currentPage-1)}>Previous</button>
+                    <button id="prev-btn" onClick={() => 
+                        {//TODO: změna search nezmění current page => prázdná stránka
+                            if (currentPage > calcPageCount(itemsPerPage, searchRecords.length))
+                                {setCurrentPage(1)}
+                            else
+                                {setCurrentPage(currentPage-1)}
+                            
+                        }}>Previous</button>
                 }
-                {currentPage !== calcPageCount(itemsPerPage, records.length) &&
-                    <button id="next-btn" onClick={() => setCurrentPage(currentPage+1)}>Next</button>
+                {currentPage !== calcPageCount(itemsPerPage, searchRecords.length) &&
+                    <button id="next-btn" onClick={() => 
+                        {
+                        if (currentPage > calcPageCount(itemsPerPage, searchRecords.length))
+                            {setCurrentPage(1)}
+                        else
+                            {setCurrentPage(currentPage+1)}
+                        
+                        }}>Next</button>
                 }<br/>
-                page count: <span id="page-count">{calcPageCount(itemsPerPage, records.length)}</span>
+                {currentPage > calcPageCount(itemsPerPage, searchRecords.length)}
+                page count: <span id="page-count">{calcPageCount(itemsPerPage, searchRecords.length)}</span>
                 
             </div>
         </>
