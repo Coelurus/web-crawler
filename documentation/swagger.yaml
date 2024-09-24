@@ -205,6 +205,7 @@ paths:
       tags:
         - tags
       summary: Get all tags
+      description: Get string names of all tags saved in db
       responses:
         "200":
           description: Successful response
@@ -213,7 +214,8 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/Tag"
+                  type: string
+                  example: UNI
 
 components:
   schemas:
@@ -379,15 +381,15 @@ components:
           description: Unique identifier of execution
           example: 9
         website:
-          type: integer
-          format: int64
-          description: Id of website record for which execution was created
+          $ref: "#/components/schemas/WebsiteRecordOut"
+
+          description: Website record for which execution was created
           example: 1
         status:
           type: string
-          enum: [pending, in_progress, completed, failed]
+          enum: [pending, in_progress, finished, failed]
           description: Status of the execution
-          example: pending
+          example: finished
         startTime:
           type: string
           format: date-time
@@ -411,8 +413,8 @@ components:
         - id
         - url
         - title
-        - crawlTime
-        - links
+        - executionId
+        - state
       properties:
         id:
           type: integer
@@ -432,12 +434,32 @@ components:
           type: string
           format: time
           example: 00:12:32
-        links:
-          description: List of ids of CrawlWebsite that are children of the CW
-          type: array
-          items:
-            type: integer
-            format: int64
+        executionId:
+          description: Id of execution that invoked this search
+          type: integer
+          format: int64
+          example: 33
+        state:
+          description: The state of crawl on this page
+          type: string
+          enum: [SEARCHED, TO BE SEARCHED, NOT MATCHED, INACCESSIBLE]
+
+    CrawlLink:
+      description: oriented edge between two crawled websites created by existinge <a> element
+      required:
+        - from_id
+        - to_id
+      properties:
+        from_id:
+          description: ID of page where is a link
+          type: integer
+          format: int64
+          example: 3
+        to_id:
+          description: Target of a link
+          type: integer
+          format: int64
+          example: 4
 
     ErrorResponse:
       description: Response returned to user on error
