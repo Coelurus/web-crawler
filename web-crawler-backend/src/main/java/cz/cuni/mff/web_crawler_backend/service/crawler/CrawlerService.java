@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -45,14 +46,13 @@ public class CrawlerService {
      * @param execution Execution object that has invoked this crawling
      */
     public void crawl(List<CrawlResult> queue, String regexp, Execution execution) {
-        execution.setStatus("STARTED");
-        executionRepository.save(execution);
+        executionRepository.updateStatusAndTime("STARTED", null, execution.getId());
         try {
             goThroughCrawlQueue(queue, regexp, execution);
+            executionRepository.updateStatusAndTime("FINISHED", ZonedDateTime.now(), execution.getId());
         } catch (Exception e) {
-            execution.setStatus("FAILED");
+            executionRepository.updateStatusAndTime("FAILED", ZonedDateTime.now(), execution.getId());
         }
-        executionRepository.save(execution);
     }
 
     /**
@@ -73,6 +73,7 @@ public class CrawlerService {
 
             try {
                 readDataFromPage(queue, execution, crawlResult, pattern);
+                executionRepository.updateCrawledCount(execution.getId());
             } catch (IOException | IllegalArgumentException e) {
                 crawlResult.setTitle("INACCESSIBLE");
                 crawlResult.setState("INACCESSIBLE");
@@ -85,7 +86,6 @@ public class CrawlerService {
 
             crawlResultRepository.save(crawlResult);
         }
-        execution.setStatus("FINISHED");
     }
 
     /**

@@ -48,6 +48,7 @@ public class SchedulingConfig {
         CrawlResult root = new CrawlResult(execution.getWebsite().getUrl(), "TO BE SEARCHED", execution.getId());
         queue.addLast(root);
         crawlResultRepository.save(root);
+        websiteRecordRepository.updateCrawledData(root, execution.getWebsite().getId());
 
         Duration period = Duration.ofSeconds(execution.getWebsite().getPeriodicity().getTimeInSeconds() * 1000);
         String regexp = execution.getWebsite().getBoundaryRegExp();

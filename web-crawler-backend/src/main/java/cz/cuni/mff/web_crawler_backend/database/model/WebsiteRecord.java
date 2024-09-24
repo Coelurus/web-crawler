@@ -39,8 +39,9 @@ public class WebsiteRecord {
     )
     private List<Tag> tags;
 
-    @Column(name = "result_record")
-    private Integer crawledData;
+    @OneToOne
+    @JoinColumn(name = "result_record", referencedColumnName = "id")
+    private CrawlResult crawledData;
 
     public WebsiteRecord(String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active) {
         this.label = label;
