@@ -11,6 +11,8 @@ tags:
     description: Executed website records
   - name: tags
     description: Marking website records
+  - name: crawling
+    description: What have you found
 
 paths:
   /websites:
@@ -216,6 +218,82 @@ paths:
                 items:
                   type: string
                   example: UNI
+
+  /crawl/data:
+    get:
+      tags:
+        - crawling
+      summary: Get information about crawled websites
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrawledWebsite"
+
+  /crawl/data/{execution_id}:
+    get:
+      tags:
+        - crawling
+      summary: Get crawled websites from one execution
+      parameters:
+        - in: path
+          name: execution_id
+          required: true
+          description: ID of the execution under which this website was crawled.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrawledWebsite"
+
+  /crawl/links:
+    get:
+      tags:
+        - crawling
+      summary: Get links between crawled websites
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrawlLink"
+
+  /crawl/links/{execution_id}:
+    get:
+      tags:
+        - crawling
+      summary: Get links between crawled websites from one execution
+      parameters:
+        - in: path
+          name: execution_id
+          required: true
+          description: ID of the execution under which this website was crawled.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrawlLink"
 
 components:
   schemas:
@@ -447,9 +525,16 @@ components:
     CrawlLink:
       description: oriented edge between two crawled websites created by existinge <a> element
       required:
+        - id
         - from_id
         - to_id
+        - execution_id
       properties:
+        id:
+          description: Identifier of edge
+          type: integer
+          format: int64
+          example: 54
         from_id:
           description: ID of page where is a link
           type: integer
@@ -460,6 +545,11 @@ components:
           type: integer
           format: int64
           example: 4
+        execution_id:
+          description: ID of execution under which this crawling happened
+          type: integer
+          format: int64
+          example: 3
 
     ErrorResponse:
       description: Response returned to user on error

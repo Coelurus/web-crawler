@@ -20,9 +20,13 @@ public class CrawlLink {
     @Column(name = "to_id")
     private Long to;
 
-    public CrawlLink(Long from, Long to) {
+    @Column(name = "execution_id")
+    private Long executionId;
+
+    public CrawlLink(Long from, Long to, Long executionId) {
         this.from = from;
         this.to = to;
+        this.executionId = executionId;
     }
 
 }

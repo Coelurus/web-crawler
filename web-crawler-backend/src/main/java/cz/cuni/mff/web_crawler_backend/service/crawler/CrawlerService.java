@@ -137,7 +137,7 @@ public class CrawlerService {
                     CrawlResult son = new CrawlResult(href.substring(0, 252) + "...",
                             "URL TOO LONG", executionId);
                     crawlResultRepository.save(son);
-                    crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), son.getId()));
+                    crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), son.getId(), executionId));
                     return;
                 }
 
@@ -162,7 +162,7 @@ public class CrawlerService {
         CrawlResult target = crawlResultRepository.findByUrlAndExecutionId(href, executionId);
         if (!crawlLinkRepository.existsByFromAndTo(crawlResult.getId(), target.getId()) &&
                 !Objects.equals(crawlResult.getId(), target.getId())) {
-            crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), target.getId()));
+            crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), target.getId(), executionId));
         }
     }
 
@@ -186,7 +186,7 @@ public class CrawlerService {
         }
 
         crawlResultRepository.save(son);
-        crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), son.getId()));
+        crawlLinkRepository.save(new CrawlLink(crawlResult.getId(), son.getId(), executionId));
     }
 
     /**
