@@ -1,8 +1,7 @@
 import Record from './Record'
 import '../css/table.css'
 import { useState } from 'react'
-export default function RecordsTable({records, sortByUrl, searchLabel, searchUrl}: {records:Array<Record>, sortByUrl:boolean, searchLabel:string, searchUrl:string}){
-    const itemsPerPage = 3
+export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLabel, searchUrl}: {records:Array<Record>, itemsPerPage:number, sortByUrl:boolean, searchLabel:string, searchUrl:string}){
     const [currentPage, setCurrentPage] = useState(1)
 
     const searchRecords = records.filter(record => record.label.includes(searchLabel) && record.url.includes(searchUrl))
@@ -16,6 +15,10 @@ export default function RecordsTable({records, sortByUrl, searchLabel, searchUrl
     function calcPageCount(itemsPerPage:number, itemsCount:number): number{
         if (itemsCount%itemsPerPage === 0) return itemsCount/itemsPerPage
         return Math.floor(itemsCount/itemsPerPage)+1
+    }
+
+    function deleteRecord(id:number){
+
     }
     return(
         <>
@@ -36,13 +39,15 @@ export default function RecordsTable({records, sortByUrl, searchLabel, searchUrl
                     {currentItems.map((record:Record) =>(
                         <tr key={record.id}>
                             <td>{record.label}</td>
-                            <td>{record.tags}</td>
+                            <td>{record.tags.map(tag => (
+                                <span key={tag.id} className='tag'>{tag.name}</span>
+                            ))}</td>
                             <td>{record.periodicity}</td>
-                            <td></td>
-                            <td></td>
-                            <td><input type="checkbox" name="" id="" /></td>
+                            <td>{record.timeOfExecution}</td>
+                            <td>{record.lastExecution.toDateString()}</td>
+                            <td><input type="checkbox" name="" id={'checkbox-' + record.id} /></td>
                             <td><button>Edit</button></td>
-                            <td><button>Delete</button></td>
+                            <td><button onClick={() => deleteRecord(record.id)}>Delete</button></td>
                         </tr>
                     ))}
                 </tbody>

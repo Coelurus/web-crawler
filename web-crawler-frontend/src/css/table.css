@@ -22,6 +22,7 @@ table {
   td {
     border: 1px solid rgb(160 160 160);
     padding: 8px 10px;
+    text-align: center;
   }
   
   td:last-of-type {
@@ -36,4 +37,6 @@ table {
   tfoot td {
     font-weight: bold;
   }
+
+
   
