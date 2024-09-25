@@ -1,18 +1,13 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { fetchTags } from "../data-service";
 
-export default function RecordsHeader({ url, label, sortByUrl, selectedTags, setUrl, setLabel, setSelectedTags, setSortByUrl}: {
-    url:string, label:string, sortByUrl:boolean, selectedTags:string[],
+export default function RecordsHeader({ url, label, sortByUrl, tags, selectedTags, setUrl, setLabel, setSelectedTags, setSortByUrl}: {
+    url:string, label:string, sortByUrl:boolean, tags:string[], selectedTags:string[],
     setUrl:(e: ChangeEvent<HTMLInputElement>) => void, 
     setLabel:(e: ChangeEvent<HTMLInputElement>) => void,
     setSelectedTags:(newTags:Array<string>) => void,
     setSortByUrl:(e: ChangeEvent<HTMLInputElement>) => void}){
-    const [tags, setTags] = useState<string[]>([])
-    useEffect(() => {
-        fetchTags().then((data) => {
-            setTags(data)
-        })
-        })
+    
 
     const tagCheckChange = (event: ChangeEvent<HTMLInputElement>) => {
         const checkbox = event.currentTarget

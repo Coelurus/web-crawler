@@ -6,10 +6,10 @@ import RecordsTable from './RecordsTable'
 import Record from './Record'
 
 
-export default function Records({records, setChange}:{records:Record[], setChange:Dispatch<SetStateAction<boolean>>}){
+export default function Records({records, tags, setChange}:{records:Record[], tags:string[], setChange:Dispatch<SetStateAction<boolean>>}){
     const [url, setUrl] = useState('')
     const [label, setLabel] = useState('')
-    const [tags, setTags] = useState<string[]>([])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
     //TODO: sort by
 
@@ -21,7 +21,7 @@ export default function Records({records, setChange}:{records:Record[], setChang
       setLabel(e.target.value)
     }
     const handleTagsChange = (newTags: Array<string>) => {
-      setTags(newTags)
+      setSelectedTags(newTags)
     }
 
     const handleSortChange = (e: ChangeEvent<HTMLInputElement>) =>{
@@ -36,7 +36,8 @@ export default function Records({records, setChange}:{records:Record[], setChang
           url={url} 
           label={label} 
           sortByUrl={sortByUrl}
-          selectedTags={tags}
+          tags={tags}
+          selectedTags={selectedTags}
           setUrl={handleUrlChange} 
           setLabel={handleLableChange} 
           setSelectedTags={handleTagsChange}
@@ -48,7 +49,7 @@ export default function Records({records, setChange}:{records:Record[], setChang
           sortByUrl={sortByUrl} 
           searchLabel={label} 
           searchUrl={url}
-          searchTags={tags}
+          searchTags={selectedTags}
           setChange={setChange}
         />
 

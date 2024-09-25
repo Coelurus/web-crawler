@@ -5,8 +5,10 @@ import Records from "./record_components/Records"
 import Record from './record_components/Record'
 import ForceGraph, { LinkObject, NodeObject } from 'react-force-graph-2d'
 
-import { fetchCrawls, fetchLinks, fetchRecords } from './data-service'
+import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CreateRecordDialog from './CreateRecordDialog'
+
+
 export default function App() {
   
   // const recordsDummy = [
@@ -25,6 +27,7 @@ export default function App() {
   const [links, setLinks] = useState<LinkObject[]>([])
   const [nodes, setNodes] = useState<NodeObject[]>([])
   const [change, setChange] = useState<boolean>(false)
+  const [tags, setTags] = useState<string[]>([])
 
   useEffect(() => {
     fetchRecords().then(data => {
@@ -33,6 +36,9 @@ export default function App() {
     fetchLinks().then(data =>{
       setLinks(data)
     })
+    fetchTags().then(data => {
+      setTags(data)
+    })
     fetchCrawls().then(data => {
       setNodes(data.map<NodeObject>(crawl => {
         return{
@@ -40,7 +46,7 @@ export default function App() {
           label: crawl.title.substring(0, 20),
           url: crawl.url,
           executionId: crawl.executionId,
-          color: 'darkmagenta'
+          color: 'darkgreen'
         }
       }))
     })
@@ -64,7 +70,7 @@ export default function App() {
   return(
     <>
       <CreateRecordDialog setChange={setChange}/>
-      <Records records={records} setChange={setChange}/>
+      <Records records={records} tags={tags} setChange={setChange}/>
       <hr />
       <div>
         <ForceGraph 
