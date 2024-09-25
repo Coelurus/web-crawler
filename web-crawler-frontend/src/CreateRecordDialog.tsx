@@ -71,7 +71,7 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
             <button onClick={toggleCreateDialog}>Show Create Record Dialog</button>
             <div id="create-dialog" hidden>
                 <h2>Create Record</h2>
-                <form action="./api/websites" method="POST" id="createForm" onSubmit={handleSubmit}>
+                <form id="createForm" className="dialog" onSubmit={handleSubmit}>
                     <label htmlFor="postLabel">Label:
                         <input type="text" name="label" id="postLabel"/>
                     </label>

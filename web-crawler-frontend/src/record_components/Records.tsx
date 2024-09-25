@@ -6,7 +6,7 @@ import RecordsTable from './RecordsTable'
 import Record from './Record'
 
 
-export default function Records({records, tags, setChange}:{records:Record[], tags:string[], setChange:Dispatch<SetStateAction<boolean>>}){
+export default function Records({records, tags, setEditingRecord, setChange}:{records:Record[], tags:string[], setEditingRecord:Dispatch<SetStateAction<Record|null>>, setChange:Dispatch<SetStateAction<boolean>>}){
     const [url, setUrl] = useState('')
     const [label, setLabel] = useState('')
     const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -50,6 +50,7 @@ export default function Records({records, tags, setChange}:{records:Record[], ta
           searchLabel={label} 
           searchUrl={url}
           searchTags={selectedTags}
+          setEditingRecord={setEditingRecord}
           setChange={setChange}
         />
 

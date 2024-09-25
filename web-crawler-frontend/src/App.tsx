@@ -7,6 +7,7 @@ import ForceGraph, { LinkObject, NodeObject } from 'react-force-graph-2d'
 
 import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CreateRecordDialog from './CreateRecordDialog'
+import EditRecordDialog from './EditRecordDialog'
 
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
   const [nodes, setNodes] = useState<NodeObject[]>([])
   const [change, setChange] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
+  const [editingRecord, setEditingRecord] = useState<Record|null>(null)
 
   useEffect(() => {
     fetchRecords().then(data => {
@@ -70,7 +72,9 @@ export default function App() {
   return(
     <>
       <CreateRecordDialog setChange={setChange}/>
-      <Records records={records} tags={tags} setChange={setChange}/>
+      <Records records={records} tags={tags} setEditingRecord={setEditingRecord} setChange={setChange}/>
+      {editingRecord && <><EditRecordDialog editingRecord={editingRecord} setChange={setChange}/> <button onClick={() => setEditingRecord(null)}>Close</button></>}
+      
       <hr />
       <div>
         <ForceGraph 

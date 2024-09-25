@@ -2,8 +2,9 @@ import Record from './Record'
 import '../css/table.css'
 import { Dispatch, SetStateAction, useState } from 'react'
 import { deleteRecord } from '../data-service'
-export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLabel, searchUrl, searchTags, setChange}: 
-    {records:Array<Record>, itemsPerPage:number, sortByUrl:boolean, searchLabel:string, searchUrl:string, searchTags:string[], setChange:Dispatch<SetStateAction<boolean>>}){
+export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: 
+    {records:Array<Record>, itemsPerPage:number, sortByUrl:boolean, searchLabel:string, searchUrl:string, searchTags:string[], 
+        setEditingRecord:Dispatch<SetStateAction<Record|null>>, setChange:Dispatch<SetStateAction<boolean>>}){
     const [currentPage, setCurrentPage] = useState(1)
 
     const searchRecords = records.filter(record => 
@@ -63,7 +64,7 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                             <td>{record.timeOfExecution && record.timeOfExecution}</td>
                             <td>{record.lastExecution && record.lastExecution.toDateString()}</td>
                             <td><input type="checkbox" name="" id={'checkbox-' + record.id} /></td>
-                            <td><button>Edit</button></td>
+                            <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
                             <td><button onClick={() => {deleteRecord(record.id); setChange(prevState => !prevState)}}>Delete</button></td>
                         </tr>
                     ))}
