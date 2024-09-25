@@ -39,3 +39,11 @@
 .read-the-docs {
   color: #888;
 }
+
+.tag{
+  padding: 0.5em;
+  margin: 0.2em;
+  background-color: grey;
+  color: white;
+  border-radius: 0.5em;
+}

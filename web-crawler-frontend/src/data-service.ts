@@ -1,5 +1,4 @@
 import { LinkObject } from "react-force-graph-2d";
-import ErrorResponse from "./record_components/ErrorResponse";
 import Execution from "./record_components/Execution";
 import Record from "./record_components/Record";
 import CrawledWeb from "./Graph/CrawledWeb";
@@ -14,12 +13,11 @@ export async function fetchRecords(): Promise<Record[]>{
         if (record.crawledData !== null){
             const responseExec = await fetch("./api/executions/"+record.crawledData.executionId)
             
-            const execution:Execution|ErrorResponse = await responseExec.json()
-            if (execution instanceof Execution){
-                record.lastExecution = execution.startTime
-                const timeOfExecMilliseconds:number = execution.endTime.getTime() - execution.startTime.getTime()
-                record.timeOfExecution = Math.round(timeOfExecMilliseconds/ (1000 * 60)).toString() + Math.round(timeOfExecMilliseconds/ (1000)).toString()
-            }
+            const execution:Execution = await responseExec.json()
+            record.lastExecution = execution.startTime
+            const timeOfExecMilliseconds:number = new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
+            record.timeOfExecution = Math.round(timeOfExecMilliseconds/ (1000 * 60)).toString() + Math.round(timeOfExecMilliseconds/ (1000)).toString()
+            console.log(record)
         }
 
     })
@@ -67,5 +65,5 @@ export async function deleteRecord(id:number){
     if (!response.ok){
         throw new Error('Network resopnse was not ok')
     }
-    return await response.json()
+    return response.json()
 }

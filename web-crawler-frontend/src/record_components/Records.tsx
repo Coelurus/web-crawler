@@ -9,7 +9,7 @@ import Record from './Record'
 export default function Records({records, setChange}:{records:Record[], setChange:Dispatch<SetStateAction<boolean>>}){
     const [url, setUrl] = useState('')
     const [label, setLabel] = useState('')
-    const [tags, setTags] = useState(['UNI', 'WIKI'])
+    const [tags, setTags] = useState<string[]>([])
     const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
     //TODO: sort by
 
@@ -35,11 +35,11 @@ export default function Records({records, setChange}:{records:Record[], setChang
         <RecordsHeader 
           url={url} 
           label={label} 
-          tags={tags} 
           sortByUrl={sortByUrl}
+          selectedTags={tags}
           setUrl={handleUrlChange} 
           setLabel={handleLableChange} 
-          setTags={handleTagsChange}
+          setSelectedTags={handleTagsChange}
           setSortByUrl={handleSortChange}
         />
         <RecordsTable 
@@ -48,6 +48,7 @@ export default function Records({records, setChange}:{records:Record[], setChang
           sortByUrl={sortByUrl} 
           searchLabel={label} 
           searchUrl={url}
+          searchTags={tags}
           setChange={setChange}
         />
 

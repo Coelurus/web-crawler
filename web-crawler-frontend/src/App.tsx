@@ -37,6 +37,7 @@ export default function App() {
       setNodes(data.map<NodeObject>(crawl => {
         return{
           id: crawl.id,
+          label: crawl.title.substring(0, 20),
           url: crawl.url,
           executionId: crawl.executionId,
           color: 'darkmagenta'

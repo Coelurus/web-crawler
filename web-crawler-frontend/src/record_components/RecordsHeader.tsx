@@ -1,11 +1,28 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { fetchTags } from "../data-service";
 
-export default function RecordsHeader({ url, label, tags, sortByUrl, setUrl, setLabel, setSortByUrl}: {
-    url:string, label:string, tags:Array<string>, sortByUrl:boolean,
+export default function RecordsHeader({ url, label, sortByUrl, selectedTags, setUrl, setLabel, setSelectedTags, setSortByUrl}: {
+    url:string, label:string, sortByUrl:boolean, selectedTags:string[],
     setUrl:(e: ChangeEvent<HTMLInputElement>) => void, 
     setLabel:(e: ChangeEvent<HTMLInputElement>) => void,
-    setTags:(newTags:Array<string>) => void,
+    setSelectedTags:(newTags:Array<string>) => void,
     setSortByUrl:(e: ChangeEvent<HTMLInputElement>) => void}){
+    const [tags, setTags] = useState<string[]>([])
+    useEffect(() => {
+        fetchTags().then((data) => {
+            setTags(data)
+        })
+        })
+
+    const tagCheckChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const checkbox = event.currentTarget
+        if (checkbox.checked){
+            setSelectedTags([...selectedTags, checkbox.parentElement!.textContent!])
+        }
+        else{
+            setSelectedTags(selectedTags.filter(tag => tag !== checkbox.parentElement!.textContent!))
+        }
+    }
     return (
         <>
         <div>
@@ -18,7 +35,7 @@ export default function RecordsHeader({ url, label, tags, sortByUrl, setUrl, set
             <label htmlFor="tags">Tags: 
                 <span id="tags">
                     {tags.map((tag:string) =>(
-                        <span key={tag}>{tag}, </span>
+                        <span key={tag} className="tag">{tag}<input type="checkbox" onChange={tagCheckChange}/></span>
                     ))}
                 </span>
             </label>
