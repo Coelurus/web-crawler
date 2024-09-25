@@ -54,8 +54,8 @@ services:
   #     context: "./web-crawler-frontend/"
   #   restart: always
   #   ports:
-  #     - ${GATEWAY_PORT-8000}:80
+  #     - 8000:80
   #   depends_on:
   #     - backend
   #   environment:
-  #     SERVER_URL: http://backend
+  #     - SERVER_URL=http://backend:8080

@@ -1,10 +1,11 @@
 import { ChangeEvent } from "react";
 
-export default function RecordsHeader({ url, label, tags, setUrl, setLabel}: {
-    url:string, label:string, tags:Array<string>, 
+export default function RecordsHeader({ url, label, tags, sortByUrl, setUrl, setLabel, setSortByUrl}: {
+    url:string, label:string, tags:Array<string>, sortByUrl:boolean,
     setUrl:(e: ChangeEvent<HTMLInputElement>) => void, 
     setLabel:(e: ChangeEvent<HTMLInputElement>) => void,
-    setTags:(newTags:Array<string>) => void}){
+    setTags:(newTags:Array<string>) => void,
+    setSortByUrl:(e: ChangeEvent<HTMLInputElement>) => void}){
     return (
         <>
         <div>
@@ -27,11 +28,10 @@ export default function RecordsHeader({ url, label, tags, setUrl, setLabel}: {
         <label htmlFor="sort-by">Sort by: 
                 <form id="sort-by" action="#">
                     <label htmlFor="sort-by-url">
-                        <input type="radio" name="sort" id="sort-by-url" defaultChecked />URL
+                        <input type="radio" name="sort" id="sort-by-url" checked={sortByUrl} onChange={setSortByUrl}/>URL
                     </label>
                     <label htmlFor="sort-by-exec">
-                        <input type="radio" name="sort" id="sort-by-exec" />
-                        Time of execution
+                        <input type="radio" name="sort" id="sort-by-exec" />Time of execution
                     </label>
                 </form>
         </label>

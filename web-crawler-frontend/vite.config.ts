@@ -5,7 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
   return{
-    plugins: [react()],
     base: "./",
     server:{
       proxy:{
@@ -13,9 +12,10 @@ export default defineConfig(({ mode }) => {
           // target: env.SERVER_URL,
           target: 'http://localhost:8080/',
           changeOrigin: true,
-          secure: false
+          rewrite: (path) => path.replace(/^\/api/, ''),
         }
       }
-    }
+    },
+    plugins: [react()],
   }
 })
