@@ -41,7 +41,7 @@ public class ExecutionAPIController {
      * @throws NotFoundException when no execution has parameter id
      */
     @GetMapping(value = "/executions/{id}")
-    public ResponseEntity<Execution> getExecution(@PathVariable int id) {
+    public ResponseEntity<Execution> getExecution(@PathVariable Long id) {
         return executionService.getExecution(id);
     }
 
@@ -53,7 +53,7 @@ public class ExecutionAPIController {
      * @throws NotFoundException when no website record has parameter id
      */
     @PostMapping(value = "/execute/{wr_id}")
-    public ResponseEntity<Execution> startExecution(@PathVariable(name = "wr_id") int wrId) {
+    public ResponseEntity<Execution> startExecution(@PathVariable(name = "wr_id") Long wrId) {
         return executionService.startExecution(wrId);
     }
 

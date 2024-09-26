@@ -47,10 +47,10 @@ public class ExecutionService {
      * @return Found execution
      * @throws NotFoundException when no execution has parameter id
      */
-    public ResponseEntity<Execution> getExecution(int id) {
+    public ResponseEntity<Execution> getExecution(Long id) {
         Execution ex = executionRepository.findById(id).orElse(null);
         if (ex == null) {
-            throw new NotFoundException("NOT_FOUND", "Execution");
+            throw new NotFoundException("Execution");
         }
         return ResponseEntity.ok(ex);
     }
@@ -62,10 +62,10 @@ public class ExecutionService {
      * @return new execution object
      * @throws NotFoundException when no website record has parameter id
      */
-    public ResponseEntity<Execution> startExecution(int wrId) {
+    public ResponseEntity<Execution> startExecution(Long wrId) {
         WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElse(null);
         if (wr == null) {
-            throw new NotFoundException("NOT_FOUND", "WebsiteRecord");
+            throw new NotFoundException("WebsiteRecord");
         }
         Execution ex = executionRepository.save(new Execution(wr));
         schedulingConfig.scheduleCrawlingTask(ex);

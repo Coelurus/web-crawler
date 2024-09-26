@@ -1,5 +1,6 @@
 package cz.cuni.mff.web_crawler_backend.service.api;
 
+import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import cz.cuni.mff.web_crawler_backend.database.model.PeriodicityTime;
 import cz.cuni.mff.web_crawler_backend.database.model.Tag;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
@@ -64,15 +65,15 @@ public class WebsiteRecordService {
                                                    String periodicity, Boolean active, List<String> tags) {
 
         if (label == null || label.isBlank()) {
-            throw new FieldValidationException("FIELD_INVALID", "label");
+            throw new FieldValidationException("label");
         }
 
         if (url == null) {
-            throw new FieldValidationException("FIELD_INVALID", "url");
+            throw new FieldValidationException("url");
         }
 
         if (boundaryRegExp == null) {
-            throw new FieldValidationException("FIELD_INVALID", "boundaryRegExp");
+            throw new FieldValidationException("boundaryRegExp");
         }
 
         PeriodicityTime periodicityTime = new PeriodicityTime(periodicity);
@@ -86,10 +87,16 @@ public class WebsiteRecordService {
                     tagRepository.save(new Tag(tag, wr.getId()));
                 }
             }
+
+            if (Boolean.TRUE.equals(active)) {
+                executionService.startExecution(wr.getId());
+            }
             return ResponseEntity.ok(wr);
+
         } catch (Exception e) {
-            throw new InternalServerException("INTERNAL_SERVER_ERROR", e.getMessage());
+            throw new InternalServerException(e.getMessage());
         }
+
     }
 
     /**
@@ -102,7 +109,7 @@ public class WebsiteRecordService {
     public ResponseEntity<WebsiteRecord> getRecord(Long id) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
         if (wr == null) {
-            throw new NotFoundException("NOT_FOUND", "WebsiteRecord");
+            throw new NotFoundException("WebsiteRecord");
         }
         return ResponseEntity.ok(wr);
     }
@@ -117,7 +124,7 @@ public class WebsiteRecordService {
     public ResponseEntity<WebsiteRecord> updateRecord(Long id, WebsiteRecord wrRecord) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
         if (wr == null) {
-            throw new NotFoundException("NOT_FOUND", "WebsiteRecord");
+            throw new NotFoundException("WebsiteRecord");
         }
         wr.setLabel(wrRecord.getLabel());
         wr.setUrl(wrRecord.getUrl());
@@ -138,12 +145,15 @@ public class WebsiteRecordService {
      */
     public ResponseEntity<Void> deleteRecord(Long id) {
         WebsiteRecord toDelete = websiteRecordRepository.findById(id).orElse(null);
-        if (toDelete == null) {
-            return ResponseEntity.noContent().build();
+        if (toDelete != null) {
+            CrawlResult root = toDelete.getCrawledData();
+            if (root != null) {
+                crawlService.deleteAllCrawlDataByExecutionId(root.getExecutionId());
+            }
         }
-        crawlService.deleteAllCrawlDataByExecutionId(toDelete.getCrawledData().getExecutionId());
+
         executionService.deleteExecutionsByWebsiteId(id);
-        websiteRecordRepository.delete(toDelete);
+        websiteRecordRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

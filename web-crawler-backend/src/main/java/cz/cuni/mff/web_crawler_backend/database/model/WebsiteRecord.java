@@ -1,5 +1,6 @@
 package cz.cuni.mff.web_crawler_backend.database.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -24,7 +25,7 @@ public class WebsiteRecord {
     @Column(name = "regex")
     private String boundaryRegExp;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "time_id", referencedColumnName = "id", nullable = false)
     private PeriodicityTime periodicity;
 
@@ -39,8 +40,8 @@ public class WebsiteRecord {
     )
     private List<Tag> tags;
 
-    @OneToOne
-    @JoinColumn(name = "result_record", referencedColumnName = "id")
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "result_record", referencedColumnName = "id", nullable = true)
     private CrawlResult crawledData;
 
     public WebsiteRecord(String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active) {

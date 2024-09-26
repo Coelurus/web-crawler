@@ -22,11 +22,11 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
-    private WebsiteRecordRepository websiteRecordRepository;
-    private CrawlerService crawlerService;
+    private final WebsiteRecordRepository websiteRecordRepository;
+    private final CrawlerService crawlerService;
     private final CrawlResultRepository crawlResultRepository;
-    private ExecutionRepository executionRepository;
-    private ThreadPoolTaskScheduler taskScheduler;
+    private final ExecutionRepository executionRepository;
+    private final ThreadPoolTaskScheduler taskScheduler;
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
     @Autowired
@@ -50,7 +50,7 @@ public class SchedulingConfig {
         crawlResultRepository.save(root);
         websiteRecordRepository.updateCrawledData(root, execution.getWebsite().getId());
 
-        Duration period = Duration.ofSeconds(execution.getWebsite().getPeriodicity().getTimeInSeconds() * 1000);
+        Duration period = Duration.ofSeconds(execution.getWebsite().getPeriodicity().getTimeInSeconds());
         String regexp = execution.getWebsite().getBoundaryRegExp();
 
         Runnable crawlingTask = () -> crawlerService.crawl(queue, regexp, execution);
