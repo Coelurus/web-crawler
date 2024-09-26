@@ -62,7 +62,7 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
                             <td>{record.timeOfExecution && record.timeOfExecution}</td>
-                            <td>{record.lastExecution && record.lastExecution.toDateString()}</td>
+                            <td>{record.lastExecution && record.lastExecution.toLocaleString()}</td>
                             <td><input type="checkbox" name="" id={'checkbox-' + record.id} /></td>
                             <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
                             <td><button onClick={() => {deleteRecord(record.id); setChange(prevState => !prevState)}}>Delete</button></td>
@@ -83,7 +83,7 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                             
                         }}>Previous</button>
                 }
-                {currentPage <= calcPageCount(itemsPerPage, searchRecords.length) &&
+                {currentPage < calcPageCount(itemsPerPage, searchRecords.length) &&
                     <button id="next-btn" onClick={() => 
                         {
                         if (currentPage > calcPageCount(itemsPerPage, searchRecords.length))

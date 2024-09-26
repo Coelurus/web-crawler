@@ -1,15 +1,16 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react"
 import Record from "./record_components/Record"
 import './css/CreateDialog.css'
+import Execution from "./record_components/Execution"
 // import Execution from "./record_components/Execution"
 
 
-export default function CreateRecordDialog({editingRecord = null, setChange}:{editingRecord:Record|null, setChange:Dispatch<SetStateAction<boolean>>}){
-    const [day, setDay] = useState(editingRecord ? editingRecord.periodicity.day : 0)
-    const [hour, setHour] = useState(editingRecord ? editingRecord.periodicity.day : 0)
-    const [minute, setMinute] = useState(editingRecord ? editingRecord.periodicity.day : 10)
+export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetStateAction<boolean>>}){
+    const [day, setDay] = useState(0)
+    const [hour, setHour] = useState(0)
+    const [minute, setMinute] = useState(10)
     const [tag, setTag] = useState('')
-    const [tags, setTags] = useState<string[]>(editingRecord ? editingRecord.tags.map<string>(tag => tag.name) : [])
+    const [tags, setTags] = useState<string[]>([])
 
     const handleDayChange = (e: ChangeEvent<HTMLInputElement>) => {
         setDay(Number(e.target.value))
@@ -24,10 +25,10 @@ export default function CreateRecordDialog({editingRecord = null, setChange}:{ed
         setTag(e.target.value)
     }
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
-        const tagEl = event.currentTarget.parentElement!
-        console.log(tagEl.textContent!.slice(0,tagEl.textContent!.length-1))
-        setTags(tags.filter(tag => tag !== tagEl.textContent!.slice(0,tagEl.textContent!.length-1)))
-        tagEl.remove()
+        const tagEl = event.currentTarget.parentNode!
+        const tagText = tagEl.textContent
+        setTags(tags.filter(tag => tag+'X' !== tagText!.slice(0,tagEl.textContent!.length-1)))
+        tagEl.parentNode!.removeChild(tagEl)
         
     }
     const addTag = () => {
@@ -35,13 +36,13 @@ export default function CreateRecordDialog({editingRecord = null, setChange}:{ed
         setTag('')
     }
     const toggleCreateDialog = (event: React.MouseEvent<HTMLButtonElement>) => {
-
-        const dialog: HTMLElement = document.getElementById('create-dialog') as HTMLElement
+        
+        const dialog:HTMLElement = document.getElementById('create-dialog') as HTMLElement
         dialog.hidden = !dialog.hidden
-        if (dialog.hidden) {
+        if (dialog.hidden){
             event.currentTarget.textContent = 'Show Create Record Dialog'
         }
-        else {
+        else{
             event.currentTarget.textContent = 'Hide Crate Record Dialog'
         }
     }
@@ -49,62 +50,62 @@ export default function CreateRecordDialog({editingRecord = null, setChange}:{ed
         event.preventDefault()
         const formData = new FormData((document.getElementById('createForm') as HTMLFormElement))
 
-        formData.append('tags', JSON.stringify(tags))
+        formData.append('tags', JSON.stringify( tags ))
         formData.append('active', 'true')
 
-        try {
-            const response = await fetch("/api/websites", {
+        try{
+            const response = await fetch("./api/websites",{
                 method: 'POST',
                 body: formData
             })
             setChange(prevState => !prevState)
-            const record: Record = await response.json()
-            // const execResponse = await fetch("/api/execute/"+record.id, {
-            //     method: 'POST'
-            // })
-            // const execution:Execution = await execResponse.json()
-            // console.log(execution)
-        } catch (error) {
+            const record:Record = await response.json()
+            const execResponse = await fetch("./api/execute/"+record.id, {
+                method: 'POST'
+            })
+            const execution:Execution = await execResponse.json()
+            
+        } catch (error){
             console.error('Error:', error)
         }
     }
-    return (
+    return(
         <>
             <button onClick={toggleCreateDialog}>Show Create Record Dialog</button>
             <div id="create-dialog" hidden>
                 <h2>Create Record</h2>
                 <form id="createForm" className="dialog" onSubmit={handleSubmit}>
                     <label htmlFor="postLabel">Label:
-                        <input type="text" name="label" id="postLabel" />
+                        <input type="text" name="label" id="postLabel"/>
                     </label>
                     <label htmlFor="postUrl">URL:
-                        <input type="text" name="url" id="postUrl" />
+                        <input type="text" name="url" id="postUrl"/>
                     </label>
                     <label htmlFor="postBoundaryRegExp">Boundary RegEx:
-                        <input type="text" name="boundaryRegExp" id="postBoundaryRegExp" />
+                        <input type="text" name="boundaryRegExp" id="postBoundaryRegExp"/>
                     </label>
                     <p>Periodicity:</p>
                     <label htmlFor="postDay">Days:
-                        <input type="number" id="postDay" onChange={handleDayChange} min={0} />
+                        <input type="number" id="postDay" onChange={handleDayChange} min={0}/>
                     </label>
                     <label htmlFor="postHour">Hours:
-                        <input type="number" id="postHour" onChange={handleHourChange} min={0} max={23} />
+                        <input type="number" id="postHour" onChange={handleHourChange} min={0} max={23}/>
                     </label>
                     <label htmlFor="postMinute">Minutes:
-                        <input type="number" id="postMinute" onChange={handleMinuteChange} min={0} max={59} />
+                        <input type="number" id="postMinute" onChange={handleMinuteChange} min={0} max={59}/>
                     </label>
                     <label htmlFor="postTags"></label>
-                    <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden readOnly/>
+                    <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden/>
                 
                     <br />
-                    <input type="text" id="tag" value={tag} onChange={handleTagChange} />
+                    <input type="text" id="tag" value={tag} onChange={handleTagChange}/>
                     <button type="button" id="addTag" onClick={addTag} >Add tag</button>
                     <ul>
                         {tags.map(tag => (
                             <>
                                 <li key={tag} className="tag" >{tag}
-                                    <button type="button" onClick={deleteTag} >X</button></li>
-
+                                    <button key={tag+'-btn'} type="button" onClick={deleteTag} >X</button></li>
+                                
                             </>
                         ))}
                     </ul>

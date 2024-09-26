@@ -13,8 +13,12 @@ export async function fetchRecords(): Promise<Record[]> {
             const execution: Execution = await responseExec.json()
             record.lastExecution = execution.startTime
             const timeOfExecMilliseconds: number = new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
-            record.timeOfExecution = Math.round(timeOfExecMilliseconds / (1000 * 60)).toString() + Math.round(timeOfExecMilliseconds / (1000)).toString()
-            console.log(record)
+            if (execution.status.toLowerCase() === 'failed'){
+                record.timeOfExecution = 'FAILED'
+            }
+            else{
+                record.timeOfExecution = Math.round(timeOfExecMilliseconds / (1000 * 60)).toString() + 'm ' + Math.round((timeOfExecMilliseconds - Math.round(timeOfExecMilliseconds / (1000 * 60))*(1000 * 60)) / (1000)).toString() + 's'
+            }
         }
 
     })
@@ -28,23 +32,26 @@ export async function fetchTags(): Promise<string[]> {
 
 class LinkResponse {
     public id: number
-    public from_id: number
-    public to_id: number
-    public execution_id: number
+    public from: number
+    public to: number
+    public executionId: number
 
     public constructor(id: number, from_id: number, to_id: number, execution_id: number) {
         this.id = id
-        this.from_id = from_id
-        this.to_id = to_id
-        this.execution_id = execution_id
+        this.from = from_id
+        this.to = to_id
+        this.executionId = execution_id
     }
 }
 
 export async function fetchLinks(): Promise<LinkObject[]> {
     const response = await fetch("/api/crawl/link")
     const linkResponses: LinkResponse[] = await response.json()
-    return linkResponses.map<LinkObject>(link => {
-        return { source: link.from_id, target: link.to_id }
+    return linkResponses.map<LinkObject>(linkRes => {
+        return {
+            source: linkRes.from, 
+            target: linkRes.to
+        }
     })
 }
 
