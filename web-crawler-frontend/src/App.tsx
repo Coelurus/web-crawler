@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 import './css/App.css'
 import Records from "./record_components/Records"
 import Record from './record_components/Record'
@@ -30,27 +30,72 @@ export default function App() {
   const [change, setChange] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
+  const [domainView, setDomainView] = useState<boolean>(true)
 
   useEffect(() => {
     fetchRecords().then(data => {
       setRecords(data)
     })
-    fetchLinks().then(data =>{
-      setLinks(data)
-    })
+    // fetchLinks().then(data =>{
+    //   setLinks(data)
+    // })
     fetchTags().then(data => {
       setTags(data)
     })
     fetchCrawls().then(data => {
-      setNodes(data.map<NodeObject>(crawl => {
+      const allNodes = data.map<NodeObject>(crawl => {
         return{
           id: crawl.id,
           label: crawl.title.substring(0, 20),
           url: crawl.url,
           executionId: crawl.executionId,
-          color: 'darkgreen'
+          color: 'darkgreen',
+          state: crawl.state
         }
-      }))
+      })
+
+      if (domainView){ // get nodes with the same domain to one node
+        let domains:string[] = []
+        const domainRegex:RegExp = /:\/\/(.[^\/])*\//
+        let domainNodes:NodeObject[] = []
+
+        let webToDomainId:{[key: number]: number} = []
+
+        allNodes.forEach(node => {
+          const match = node.url.match(domainRegex)
+          if (match){
+              const domain = match[0].slice(3, match[0].length)
+              
+              if (!domains.includes(domain)){
+                domains.push(domain)
+                node.label = domain
+                domainNodes.push(node)
+                webToDomainId[node.id as number] = node.id as number
+              }
+              else{
+                const foundNode = domainNodes.find(node => {
+                  const domainMatch = node.url.match(domainRegex)![0]
+                  return domainMatch.slice(3,domainMatch.length) === domain
+
+                })
+                webToDomainId[node.id as number] = foundNode!.id as number
+              }
+          }
+          
+        })
+        fetchLinks().then(data => {
+          setLinks(data.map<LinkObject>(link => {
+            return { 
+              source: webToDomainId[link.source as number], 
+              target: webToDomainId[link.target as number]} // change web id to domain id
+          }))
+        })
+        console.log('links', links)
+        setNodes(domainNodes)
+      }else{
+        setNodes(allNodes)  
+      }
+      
     })
   }, [change])
   // function createNodes():Array<NodeObject>{
@@ -67,7 +112,11 @@ export default function App() {
   //   })
   //   return nodes
   // }
-
+  const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
+    
+    setDomainView(event.currentTarget.checked)
+    setChange(prevState => !prevState)
+  }
 
   return(
     <>
@@ -76,31 +125,49 @@ export default function App() {
       {editingRecord && <><EditRecordDialog editingRecord={editingRecord} setChange={setChange}/> <button onClick={() => setEditingRecord(null)}>Close</button></>}
       
       <hr />
+      <span>View: </span>
+      <label htmlFor="domain-radio">domain
+        
+      <input type="radio" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-radio'/>
+      </label>
+      <label htmlFor="web-radio">web
+        <input type="radio" name='graph-visual' id='web-radio'/>
+      </label>
       <div>
         <ForceGraph 
           graphData={{nodes: nodes, links: links}} 
           width={750}
           backgroundColor='lightblue'
-          nodeAutoColorBy={(node) => node.group}
-          nodeLabel={(node) => node.label}
+          nodeAutoColorBy={(node) => node.state}
+          nodeLabel={(node) => node.url}
+          
           nodeCanvasObject={(node, ctx, globalScale) => {
             const label:string = node.label;
             const fontSize = 12/globalScale;
             ctx.font = `${fontSize}px Sans-Serif`;
             const textWidth = ctx.measureText(label).width;
-            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
-
+            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = node.color;
+            // if (node.state === 'SEARCHED'){
+            //   ctx.fillStyle = node.color;
+            // }
+            // else if (node.state === 'NOT MATCHED'){
+            //   ctx.fillStyle = 'darkred'
+            // }
+            // else{
+            //   ctx.fillStyle = 'orange'
+            // }
             ctx.fillText(label, node.x!, node.y!);
 
-            node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
+            node.__bckgDimensions = bckgDimensions; 
           }}
           nodePointerAreaPaint={(node, color, ctx) => {
+            
             ctx.fillStyle = color;
             const bckgDimensions = node.__bckgDimensions;
             bckgDimensions && ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);

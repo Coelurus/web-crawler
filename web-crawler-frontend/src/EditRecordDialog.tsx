@@ -53,7 +53,6 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
         setTags([...tags, tag])
         setTag('')
     }
-    { console.log(editingRecord) }
     return (
         <>
             <h2>Edit {editingRecord.label} Record Dialog</h2>
