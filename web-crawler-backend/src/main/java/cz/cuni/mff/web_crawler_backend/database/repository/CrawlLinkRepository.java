@@ -11,4 +11,6 @@ public interface CrawlLinkRepository extends JpaRepository<CrawlLink, Long> {
     boolean existsByFromAndTo(Long from, Long to);
 
     List<CrawlLink> findByExecutionId(Long executionId);
+
+    void deleteByExecutionId(Long executionId);
 }

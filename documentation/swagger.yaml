@@ -257,7 +257,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/CrawledWebsite"
 
-  /crawl/links:
+  /crawl/link:
     get:
       tags:
         - crawling
@@ -272,7 +272,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/CrawlLink"
 
-  /crawl/links/{execution_id}:
+  /crawl/link/{execution_id}:
     get:
       tags:
         - crawling

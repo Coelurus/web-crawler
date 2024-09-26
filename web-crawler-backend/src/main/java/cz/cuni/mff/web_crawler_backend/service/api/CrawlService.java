@@ -40,4 +40,9 @@ public class CrawlService {
         List<CrawlLink> links = linkRepository.findByExecutionId(executionId);
         return ResponseEntity.ok(links);
     }
+
+    public void deleteAllCrawlDataByExecutionId(Long executionId) {
+        linkRepository.deleteByExecutionId(executionId);
+        resultRepository.deleteByExecutionId(executionId);
+    }
 }

@@ -23,20 +23,43 @@ public class WebsiteRecordService {
     private final WebsiteRecordRepository websiteRecordRepository;
     private final TagRepository tagRepository;
     private final PeriodicityTimeRepository periodicityTimeRepository;
+    private final ExecutionService executionService;
+    private final CrawlService crawlService;
 
     @Autowired
     public WebsiteRecordService(WebsiteRecordRepository websiteRecordRepository,
                                 TagRepository tagRepository,
-                                PeriodicityTimeRepository periodicityTimeRepository) {
+                                PeriodicityTimeRepository periodicityTimeRepository,
+                                ExecutionService executionService,
+                                CrawlService crawlService) {
         this.websiteRecordRepository = websiteRecordRepository;
         this.tagRepository = tagRepository;
         this.periodicityTimeRepository = periodicityTimeRepository;
+        this.executionService = executionService;
+        this.crawlService = crawlService;
     }
 
+    /**
+     * Get all records from db
+     *
+     * @return ok response status and list of all records
+     */
     public ResponseEntity<List<WebsiteRecord>> getRecords() {
         return new ResponseEntity<>(websiteRecordRepository.findAll(), HttpStatus.OK);
     }
 
+    /**
+     * Create new record and save it to db
+     *
+     * @param label          User given label to new record
+     * @param url            Url where to start crawling
+     * @param boundaryRegExp Regexp used to match links
+     * @param periodicity    How often should the website be crawled
+     * @param active         Whether crawling should happen every period
+     * @param tags           User given tags to this record
+     * @return Ok response with newly created object
+     * @throws FieldValidationException when user given invalid input for any field
+     */
     public ResponseEntity<WebsiteRecord> addRecord(String label, String url, String boundaryRegExp,
                                                    String periodicity, Boolean active, List<String> tags) {
 
@@ -69,7 +92,14 @@ public class WebsiteRecordService {
         }
     }
 
-    public ResponseEntity<WebsiteRecord> getRecord(int id) {
+    /**
+     * Get record from db by its id
+     *
+     * @param id ID of record to be found
+     * @return Found record
+     * @throws NotFoundException when record with no such id exists
+     */
+    public ResponseEntity<WebsiteRecord> getRecord(Long id) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
         if (wr == null) {
             throw new NotFoundException("NOT_FOUND", "WebsiteRecord");
@@ -77,7 +107,14 @@ public class WebsiteRecordService {
         return ResponseEntity.ok(wr);
     }
 
-    public ResponseEntity<WebsiteRecord> updateRecord(int id, WebsiteRecord wrRecord) {
+    /**
+     * Update existing record by id
+     *
+     * @param id       ID of record to update
+     * @param wrRecord new website record to replace the old one
+     * @return ok response with updated object
+     */
+    public ResponseEntity<WebsiteRecord> updateRecord(Long id, WebsiteRecord wrRecord) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
         if (wr == null) {
             throw new NotFoundException("NOT_FOUND", "WebsiteRecord");
@@ -90,11 +127,23 @@ public class WebsiteRecordService {
         wr.setTags(wrRecord.getTags());
         // Delete previously crawled data since it is outdated
         wr.setCrawledData(null);
+        websiteRecordRepository.save(wr);
         return ResponseEntity.ok(wr);
     }
 
-    public ResponseEntity<Void> deleteRecord(int id) {
-        websiteRecordRepository.findById(id).ifPresent(websiteRecordRepository::delete);
+    /**
+     * Delete record from db and all associated executions and crawl data
+     *
+     * @param id ID of record to delete
+     */
+    public ResponseEntity<Void> deleteRecord(Long id) {
+        WebsiteRecord toDelete = websiteRecordRepository.findById(id).orElse(null);
+        if (toDelete == null) {
+            return ResponseEntity.noContent().build();
+        }
+        crawlService.deleteAllCrawlDataByExecutionId(toDelete.getCrawledData().getExecutionId());
+        executionService.deleteExecutionsByWebsiteId(id);
+        websiteRecordRepository.delete(toDelete);
         return ResponseEntity.noContent().build();
     }
 }

@@ -22,4 +22,6 @@ public interface CrawlResultRepository extends JpaRepository<CrawlResult, Long> 
     @Query("update CrawlResult cr set cr.state = ?1 where cr.id = ?2")
     void updateState(String state, Long id);
 
+    void deleteByExecutionId(Long executionId);
+
 }

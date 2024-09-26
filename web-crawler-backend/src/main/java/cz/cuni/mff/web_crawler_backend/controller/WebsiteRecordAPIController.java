@@ -56,7 +56,7 @@ public class WebsiteRecordAPIController {
      * @return Website record found by id
      */
     @GetMapping(value = "/websites/{id}")
-    public ResponseEntity<WebsiteRecord> getRecord(@PathVariable int id) {
+    public ResponseEntity<WebsiteRecord> getRecord(@PathVariable Long id) {
         return websiteRecordService.getRecord(id);
     }
 
@@ -68,7 +68,7 @@ public class WebsiteRecordAPIController {
      * @return Updated record
      */
     @PutMapping(value = "/websites/{id}")
-    public ResponseEntity<WebsiteRecord> updateRecord(@PathVariable int id, @RequestBody WebsiteRecord wrRecord) {
+    public ResponseEntity<WebsiteRecord> updateRecord(@PathVariable Long id, @RequestBody WebsiteRecord wrRecord) {
         return websiteRecordService.updateRecord(id, wrRecord);
     }
 
@@ -79,7 +79,7 @@ public class WebsiteRecordAPIController {
      * @return Status 200
      */
     @DeleteMapping(value = "/websites/{id}")
-    public ResponseEntity<Void> deleteRecord(@PathVariable int id) {
+    public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
         return websiteRecordService.deleteRecord(id);
     }
 }

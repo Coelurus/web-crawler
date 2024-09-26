@@ -72,4 +72,13 @@ public class ExecutionService {
         return ResponseEntity.ok(ex);
     }
 
+    /**
+     * Delete all executions from database that were executed from concrete website record
+     *
+     * @param websiteId ID of website by which to delete all executions
+     */
+    public void deleteExecutionsByWebsiteId(Long websiteId) {
+        executionRepository.deleteByWebsiteId(websiteId);
+    }
+
 }
