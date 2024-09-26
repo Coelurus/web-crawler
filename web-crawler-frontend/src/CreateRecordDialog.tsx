@@ -59,11 +59,6 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
                 body: formData
             })
             setChange(prevState => !prevState)
-            const record:Record = await response.json()
-            const execResponse = await fetch("./api/execute/"+record.id, {
-                method: 'POST'
-            })
-            const execution:Execution = await execResponse.json()
             
         } catch (error){
             console.error('Error:', error)

@@ -1,0 +1,14 @@
+#crawled-detail{
+    position: fixed;
+    max-width: 250px;
+    background-color: blanchedalmond;
+    z-index: 99999;
+    border-radius: 1em;
+}
+#crawled-detail span{
+    overflow: scroll;
+}
+#website-list{
+    max-height: 100px;
+    overflow: scroll;
+}

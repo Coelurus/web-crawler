@@ -6,7 +6,7 @@ export default class Record{
     public id:number;
     public label: string;
     public url: string;
-    public boundaryRegEx: string;
+    public boundaryRegExp: string;
     public periodicity: PeriodicityTime;
     public active:boolean
     public tags:Array<Tag>
@@ -19,7 +19,7 @@ export default class Record{
         this.id = id;
         this.label = label;
         this.url = url;
-        this.boundaryRegEx = boundaryRegEx;
+        this.boundaryRegExp = boundaryRegEx;
         this.periodicity = periodicity;
         this.active = active;
         this.tags = tags;

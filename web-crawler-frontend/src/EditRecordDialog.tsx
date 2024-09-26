@@ -22,11 +22,6 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
             })
             setChange(prevState => !prevState)
             const record: Record = await response.json()
-            // const execResponse = await fetch("/api/execute/"+record.id, {
-            //     method: 'POST'
-            // })
-            // const execution:Execution = await execResponse.json()
-            // console.log(execution)
         } catch (error) {
             console.error('Error:', error)
         }
@@ -45,9 +40,11 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
         setTag(e.target.value)
     }
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setTags(tags.filter(tag => tag !== event.currentTarget.parentElement!.textContent))
-        event.currentTarget.parentElement!.remove()
-
+        const tagEl = event.currentTarget.parentNode!
+        const tagText = tagEl.textContent
+        setTags(tags.filter(tag => tag+'X' !== tagText!.slice(0,tagEl.textContent!.length-1)))
+        tagEl.parentNode!.removeChild(tagEl)
+        
     }
     const addTag = () => {
         setTags([...tags, tag])
@@ -57,7 +54,6 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
         <>
             <h2>Edit {editingRecord.label} Record Dialog</h2>
             <form id='edit-form' className='dialog' onSubmit={handleSubmit}>
-                <input type="text" name="id" id="putId" value={editingRecord.id} hidden readOnly />
                 <label htmlFor="putLabel">Label:
                     <input type="text" name="label" defaultValue={editingRecord.label} id="putLabel" />
                 </label>
@@ -65,7 +61,8 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
                     <input type="text" name="url" defaultValue={editingRecord.url} id="putUrl" />
                 </label>
                 <label htmlFor="putBoundaryRegExp">Boundary RegEx:
-                    <input type="text" name="boundaryRegExp" defaultValue={editingRecord.boundaryRegEx} id="putBoundaryRegExp" />
+                    <input type="text" name="boundaryRegExp" id="putBoundaryRegExp" defaultValue={editingRecord.boundaryRegExp} />
+                    
                 </label>
 
                 <p>Periodicity:</p>

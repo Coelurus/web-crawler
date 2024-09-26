@@ -8,6 +8,7 @@ import ForceGraph, { LinkObject, NodeObject } from 'react-force-graph-2d'
 import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CreateRecordDialog from './CreateRecordDialog'
 import EditRecordDialog from './EditRecordDialog'
+import CrawledDetail from './Graph/CrawledDetail'
 
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
   const [tags, setTags] = useState<string[]>([])
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
   const [domainView, setDomainView] = useState<boolean>(true)
+  const [selectedNode, setSelectedNode] = useState<NodeObject|null>(null)
 
   useEffect(() => {
     fetchRecords().then(data => {
@@ -50,7 +52,8 @@ export default function App() {
           url: crawl.url,
           executionId: crawl.executionId,
           color: 'darkgreen',
-          state: crawl.state
+          state: crawl.state,
+          crawlTime: crawl.crawlTime
         }
       })
 
@@ -90,28 +93,14 @@ export default function App() {
               target: webToDomainId[link.target as number]} // change web id to domain id
           }))
         })
-        console.log('links', links)
         setNodes(domainNodes)
       }else{
+        fetchLinks().then(data => {setLinks(data)})
         setNodes(allNodes)  
       }
       
     })
   }, [change])
-  // function createNodes():Array<NodeObject>{
-  //   const nodes:NodeObject[] = records.map<NodeObject>(record =>{
-  //     return {
-  //       group: 'root',
-  //       id: record.crawledData.id,
-  //       label: record.label,
-  //       url: record.url,
-  //       crawlTime: record.timeOfExecution,
-  //       color: 'darkmagenta',
-  //       records: new Array<CrawledWeb>()
-  //     }
-  //   })
-  //   return nodes
-  // }
   const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
     
     setDomainView(event.currentTarget.checked)
@@ -133,7 +122,8 @@ export default function App() {
       <label htmlFor="web-radio">web
         <input type="radio" name='graph-visual' id='web-radio'/>
       </label>
-      <div>
+      <div id='graph'>
+        {selectedNode && <><CrawledDetail node={selectedNode} setNode={setSelectedNode}/> </>}
         <ForceGraph 
           graphData={{nodes: nodes, links: links}} 
           width={750}
@@ -152,16 +142,13 @@ export default function App() {
 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = node.color;
-            // if (node.state === 'SEARCHED'){
-            //   ctx.fillStyle = node.color;
-            // }
-            // else if (node.state === 'NOT MATCHED'){
-            //   ctx.fillStyle = 'darkred'
-            // }
-            // else{
-            //   ctx.fillStyle = 'orange'
-            // }
+            // ctx.fillStyle = node.color;
+            if (node.state === 'SEARCHED'){
+              ctx.fillStyle = node.color;
+            }
+            else{
+              ctx.fillStyle = 'darkred'
+            }
             ctx.fillText(label, node.x!, node.y!);
 
             node.__bckgDimensions = bckgDimensions; 
@@ -172,9 +159,9 @@ export default function App() {
             const bckgDimensions = node.__bckgDimensions;
             bckgDimensions && ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
           }}
-          // onNodeClick={(node, event) => {
-            
-          // }}
+          onNodeClick={(node, event) => {
+            setSelectedNode(node)
+          }}
           linkDirectionalArrowRelPos={1}
           linkDirectionalArrowLength={5}
           linkWidth={3}
