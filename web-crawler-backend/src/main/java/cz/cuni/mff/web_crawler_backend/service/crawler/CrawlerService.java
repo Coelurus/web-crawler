@@ -56,6 +56,7 @@ public class CrawlerService {
      * @param websiteRecordId ID of website record which is used to invoke the execution
      */
     public void startNewExecution(Long websiteRecordId) {
+
         WebsiteRecord websiteRecord =
                 websiteRecordRepository.findById(websiteRecordId).orElseThrow(() -> new NotFoundException("Website record"));
         // Create new execution

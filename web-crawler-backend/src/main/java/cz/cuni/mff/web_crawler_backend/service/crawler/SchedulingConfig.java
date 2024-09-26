@@ -40,6 +40,10 @@ public class SchedulingConfig {
         scheduledTasks.put(websiteRecord.getId(), scheduledFuture);
     }
 
+    public boolean isScheduled(Long websiteRecordId) {
+        return scheduledTasks.containsKey(websiteRecordId);
+    }
+
 
     /**
      * Cancel planned tasks

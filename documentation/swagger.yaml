@@ -189,12 +189,34 @@ paths:
             format: int64
             description: ID of the website record to execute.
       responses:
-        "201":
+        "200":
           description: Execution started successfully
+
+        "404":
+          description: Website record not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Execution"
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /deactivate/{wr_id}:
+    post:
+      tags:
+        - executions
+      summary: Deactive periodical executions
+      description: Deactive periodical execution for a given website record.
+      parameters:
+        - in: path
+          name: wr_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+            description: ID of the website record to stop execute once a time.
+      responses:
+        "200":
+          description: Periodical executions stopped
+
         "404":
           description: Website record not found
           content:

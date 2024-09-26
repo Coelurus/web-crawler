@@ -64,8 +64,9 @@ public class ExecutionService {
      */
     public ResponseEntity<Void> startExecution(Long wrId) {
         WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
-
-        schedulingConfig.scheduleCrawlingTask(wr);
+        if (!schedulingConfig.isScheduled(wrId)) {
+            schedulingConfig.scheduleCrawlingTask(wr);
+        }
         return ResponseEntity.ok().build();
     }
 
