@@ -3,9 +3,6 @@ import Execution from "./record_components/Execution";
 import Record from "./record_components/Record";
 import CrawledWeb from "./Graph/CrawledWeb";
 
-//TODO: fetching from server
-
-
 export async function fetchRecords(): Promise<Record[]> {
     const responseWebsites = await fetch("/api/websites")
     const records: Record[] = await responseWebsites.json()

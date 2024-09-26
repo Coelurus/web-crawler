@@ -4,12 +4,12 @@ import './css/CreateDialog.css'
 // import Execution from "./record_components/Execution"
 
 
-export default function CreateRecordDialog({ setChange }: { setChange: Dispatch<SetStateAction<boolean>> }) {
-    const [day, setDay] = useState(0)
-    const [hour, setHour] = useState(0)
-    const [minute, setMinute] = useState(10)
+export default function CreateRecordDialog({editingRecord = null, setChange}:{editingRecord:Record|null, setChange:Dispatch<SetStateAction<boolean>>}){
+    const [day, setDay] = useState(editingRecord ? editingRecord.periodicity.day : 0)
+    const [hour, setHour] = useState(editingRecord ? editingRecord.periodicity.day : 0)
+    const [minute, setMinute] = useState(editingRecord ? editingRecord.periodicity.day : 10)
     const [tag, setTag] = useState('')
-    const [tags, setTags] = useState<string[]>([])
+    const [tags, setTags] = useState<string[]>(editingRecord ? editingRecord.tags.map<string>(tag => tag.name) : [])
 
     const handleDayChange = (e: ChangeEvent<HTMLInputElement>) => {
         setDay(Number(e.target.value))
@@ -24,9 +24,11 @@ export default function CreateRecordDialog({ setChange }: { setChange: Dispatch<
         setTag(e.target.value)
     }
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setTags(tags.filter(tag => tag !== event.currentTarget.parentElement!.textContent))
-        event.currentTarget.parentElement!.remove()
-
+        const tagEl = event.currentTarget.parentElement!
+        console.log(tagEl.textContent!.slice(0,tagEl.textContent!.length-1))
+        setTags(tags.filter(tag => tag !== tagEl.textContent!.slice(0,tagEl.textContent!.length-1)))
+        tagEl.remove()
+        
     }
     const addTag = () => {
         setTags([...tags, tag])
@@ -92,15 +94,15 @@ export default function CreateRecordDialog({ setChange }: { setChange: Dispatch<
                         <input type="number" id="postMinute" onChange={handleMinuteChange} min={0} max={59} />
                     </label>
                     <label htmlFor="postTags"></label>
-                    <input type="text" name="periodicity" id="postPeriodicity" value={day + ':' + hour + ':' + minute} hidden />
-
+                    <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden readOnly/>
+                
                     <br />
                     <input type="text" id="tag" value={tag} onChange={handleTagChange} />
                     <button type="button" id="addTag" onClick={addTag} >Add tag</button>
                     <ul>
                         {tags.map(tag => (
                             <>
-                                <li key={tag} className="tag">{tag}
+                                <li key={tag} className="tag" >{tag}
                                     <button type="button" onClick={deleteTag} >X</button></li>
 
                             </>

@@ -49,4 +49,5 @@
   background-color: grey;
   color: white;
   border-radius: 0.5em;
+  display: inline-block;
 }

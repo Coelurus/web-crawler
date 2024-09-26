@@ -40,7 +40,7 @@ export default function RecordsHeader({ url, label, sortByUrl, tags, selectedTag
         <label htmlFor="sort-by">Sort by: 
                 <form id="sort-by" action="#">
                     <label htmlFor="sort-by-url">
-                        <input type="radio" name="sort" id="sort-by-url" checked={sortByUrl} onChange={setSortByUrl}/>URL
+                        <input type="radio" name="sort" id="sort-by-url" defaultChecked={sortByUrl} onChange={setSortByUrl}/>URL
                     </label>
                     <label htmlFor="sort-by-exec">
                         <input type="radio" name="sort" id="sort-by-exec" />Time of execution

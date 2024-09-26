@@ -72,7 +72,7 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
             </table>
 
             <div>
-                <span id='curr-page'>page: {currentPage}</span><br/>
+                <span id='curr-page'>{currentPage}/{calcPageCount(itemsPerPage, searchRecords.length)}</span><br/>
                 {currentPage !== 1 &&
                     <button id="prev-btn" onClick={() => 
                         {//TODO: změna search nezmění current page => prázdná stránka
@@ -93,7 +93,6 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                         
                         }}>Next</button>
                 }<br/>
-                page count: <span id="page-count">{calcPageCount(itemsPerPage, searchRecords.length)}</span>
                 
             </div>
         </>
