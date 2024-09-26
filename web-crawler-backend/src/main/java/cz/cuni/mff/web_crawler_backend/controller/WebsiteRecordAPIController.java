@@ -41,12 +41,12 @@ public class WebsiteRecordAPIController {
      * @return Response body with Website Record object
      */
     @PostMapping(value = "/websites")
-    public ResponseEntity<WebsiteRecord> addRecord(@RequestParam String label,
-                                                   @RequestParam String url,
-                                                   @RequestParam String boundaryRegExp,
-                                                   @RequestParam String periodicity,
-                                                   @RequestParam Boolean active,
-                                                   @RequestParam(required = false) List<String> tags) {
+    public ResponseEntity<WebsiteRecord> addRecord(@RequestParam(name = "label") String label,
+                                                   @RequestParam(name = "url") String url,
+                                                   @RequestParam(name = "boundaryRegExp") String boundaryRegExp,
+                                                   @RequestParam(name = "periodicity") String periodicity,
+                                                   @RequestParam(name = "active") Boolean active,
+                                                   @RequestParam(name = "tags", required = false) String tags) {
         return websiteRecordService.addRecord(label, url, boundaryRegExp, periodicity, active, tags);
     }
 
@@ -64,13 +64,18 @@ public class WebsiteRecordAPIController {
     /**
      * Update a website record by ID
      *
-     * @param id       Website record ID
-     * @param wrRecord New website record to substitute the old one
+     * @param id Website record ID
      * @return Updated record
      */
     @PutMapping(value = "/websites/{id}")
-    public ResponseEntity<WebsiteRecord> updateRecord(@PathVariable Long id, @RequestBody WebsiteRecord wrRecord) {
-        return websiteRecordService.updateRecord(id, wrRecord);
+    public ResponseEntity<WebsiteRecord> updateRecord(@PathVariable Long id,
+                                                      @RequestParam(name = "label") String label,
+                                                      @RequestParam(name = "url") String url,
+                                                      @RequestParam(name = "boundaryRegExp") String boundaryRegExp,
+                                                      @RequestParam(name = "periodicity") String periodicity,
+                                                      @RequestParam(name = "tags") String tags,
+                                                      @RequestParam(name = "active") Boolean active) {
+        return websiteRecordService.updateRecord(id, label, url, boundaryRegExp, periodicity, tags, active);
     }
 
     /**

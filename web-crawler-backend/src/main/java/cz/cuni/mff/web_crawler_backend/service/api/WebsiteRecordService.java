@@ -10,6 +10,7 @@ import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordReposito
 import cz.cuni.mff.web_crawler_backend.error.exception.FieldValidationException;
 import cz.cuni.mff.web_crawler_backend.error.exception.InternalServerException;
 import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,7 @@ public class WebsiteRecordService {
      * @throws FieldValidationException when user given invalid input for any field
      */
     public ResponseEntity<WebsiteRecord> addRecord(String label, String url, String boundaryRegExp,
-                                                   String periodicity, Boolean active, List<String> tags) {
+                                                   String periodicity, Boolean active, String tags) {
 
         if (label == null || label.isBlank()) {
             throw new FieldValidationException("label");
@@ -83,8 +84,8 @@ public class WebsiteRecordService {
             WebsiteRecord wr = websiteRecordRepository.save(new WebsiteRecord(label, url, boundaryRegExp, periodicityTime, active));
 
             if (tags != null) {
-                for (String tag : tags) {
-                    tagRepository.save(new Tag(tag, wr.getId()));
+                for (Object tag : new JSONArray(tags)) {
+                    tagRepository.save(new Tag((String) tag, wr.getId()));
                 }
             }
 
@@ -117,23 +118,49 @@ public class WebsiteRecordService {
     /**
      * Update existing record by id
      *
-     * @param id       ID of record to update
-     * @param wrRecord new website record to replace the old one
+     * @param id ID of record to update
      * @return ok response with updated object
      */
-    public ResponseEntity<WebsiteRecord> updateRecord(Long id, WebsiteRecord wrRecord) {
-        WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
-        if (wr == null) {
-            throw new NotFoundException("WebsiteRecord");
+    public ResponseEntity<WebsiteRecord> updateRecord(Long id, String label, String url, String boundaryRegExp,
+                                                      String periodicity, String tags, Boolean active) {
+        WebsiteRecord wr = websiteRecordRepository.findById(id).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+
+        boolean deleteData = false;
+
+        if (label != null) {
+            wr.setLabel(label);
         }
-        wr.setLabel(wrRecord.getLabel());
-        wr.setUrl(wrRecord.getUrl());
-        wr.setBoundaryRegExp(wrRecord.getBoundaryRegExp());
-        wr.setPeriodicity(wrRecord.getPeriodicity());
-        wr.setActive(wrRecord.isActive());
-        wr.setTags(wrRecord.getTags());
+
+        if (url != null) {
+            wr.setUrl(url);
+            deleteData = true;
+        }
+
+        if (boundaryRegExp != null) {
+            wr.setBoundaryRegExp(boundaryRegExp);
+            deleteData = true;
+        }
+
+        if (periodicity != null) {
+            wr.setPeriodicity(new PeriodicityTime(periodicity));
+        }
+
+        if (tags != null) {
+            for (Object tag : new JSONArray(tags)) {
+                tagRepository.save(new Tag((String) tag, wr.getId()));
+            }
+        }
+
+        if (active != null) {
+            wr.setActive(active);
+        }
+
+        // TODO: fix this někdy to prostě má problém najít ten execution idk proč
         // Delete previously crawled data since it is outdated
-        wr.setCrawledData(null);
+        if (deleteData) {
+            deleteAssociatedData(id);
+        }
+
         websiteRecordRepository.save(wr);
         return ResponseEntity.ok(wr);
     }
@@ -144,17 +171,24 @@ public class WebsiteRecordService {
      * @param id ID of record to delete
      */
     public ResponseEntity<Void> deleteRecord(Long id) {
-        WebsiteRecord toDelete = websiteRecordRepository.findById(id).orElse(null);
-        if (toDelete != null) {
-            CrawlResult root = toDelete.getCrawledData();
-            if (root != null) {
-                crawlService.deleteAllCrawlDataByExecutionId(root.getExecutionId());
-            }
+        deleteAssociatedData(id);
+        websiteRecordRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Delete all executions, crawl data and links that was created because of this website record
+     *
+     * @param id ID of website record whose data to delete
+     */
+    private void deleteAssociatedData(Long id) {
+        WebsiteRecord toDelete = websiteRecordRepository.findById(id).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+        CrawlResult root = toDelete.getCrawledData();
+        if (root != null) {
+            crawlService.deleteAllCrawlDataByExecutionId(root.getExecutionId());
         }
 
         executionService.deleteExecutionsByWebsiteId(id);
-        websiteRecordRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 
     /**
