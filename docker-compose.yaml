@@ -1,5 +1,16 @@
-version: '3.8'
 services:
+  frontend:
+    build:
+      context: "./web-crawler-frontend/"
+    ports:
+      - 8000:80
+    environment:
+      SERVER_URL: http://backend:8080
+    restart: always
+    depends_on:
+      backend:
+        condition: service_healthy
+
   backend:
     build:
       context: "./web-crawler-backend/"
@@ -18,12 +29,11 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -f http://backend:8080/websites || exit 1"
+          "curl -f http://backend:8080/api/websites || exit 1"
         ]
       timeout: 5s
       interval: 10s
       retries: 10
-
 
   database:
     image: postgres:16.2
@@ -47,15 +57,3 @@ services:
       interval: 10s
       retries: 10
 
-
-
-  # frontend:
-  #   build:
-  #     context: "./web-crawler-frontend/"
-  #   restart: always
-  #   ports:
-  #     - 8000:80
-  #   depends_on:
-  #     - backend
-  #   environment:
-  #     - SERVER_URL=http://backend:8080
