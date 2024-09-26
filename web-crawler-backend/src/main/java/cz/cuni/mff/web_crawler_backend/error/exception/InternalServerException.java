@@ -4,7 +4,9 @@ import lombok.Getter;
 
 @Getter
 public class InternalServerException extends APIException {
-    public InternalServerException(String code, String field) {
-        super(code, field);
+    private static final String DEFAULT_CODE = "INTERNAL_SERVER_ERROR";
+
+    public InternalServerException(String field) {
+        super(DEFAULT_CODE, field);
     }
 }

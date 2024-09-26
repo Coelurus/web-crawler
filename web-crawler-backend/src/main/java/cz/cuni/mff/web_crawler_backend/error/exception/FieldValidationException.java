@@ -4,8 +4,10 @@ import lombok.Getter;
 
 @Getter
 public class FieldValidationException extends APIException {
-    public FieldValidationException(String code, String field) {
-        super(code, field);
+    private static final String DEFAULT_CODE = "FIELD_INVALID";
+
+    public FieldValidationException(String field) {
+        super(DEFAULT_CODE, field);
     }
 
 }

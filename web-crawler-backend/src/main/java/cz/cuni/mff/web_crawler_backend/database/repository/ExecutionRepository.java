@@ -28,5 +28,7 @@ public interface ExecutionRepository extends JpaRepository<Execution, Long> {
     @Query("update Execution e set e.crawledCount = e.crawledCount + 1 where e.id = ?1")
     void updateCrawledCount(Long id);
 
+    @Transactional
+    @Modifying
     void deleteByWebsiteId(Long websiteId);
 }

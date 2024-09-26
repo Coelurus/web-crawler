@@ -27,7 +27,7 @@ public class PeriodicityTime {
     public PeriodicityTime(String input) {
         String[] parts = input.split(":");
         if (parts.length == 0 || parts.length > 3) {
-            throw new FieldValidationException("FIELD_INVALID", "periodicity");
+            throw new FieldValidationException("periodicity");
         }
 
         Integer[] parsedParts = Arrays.stream(parts).map(Integer::parseInt).toArray(Integer[]::new);

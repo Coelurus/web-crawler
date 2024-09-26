@@ -18,4 +18,8 @@ public interface WebsiteRecordRepository extends JpaRepository<WebsiteRecord, Lo
     @Modifying
     @Query("update WebsiteRecord w set w.crawledData = ?1 where w.id = ?2")
     void updateCrawledData(CrawlResult crawledData, Long id);
+
+    @Modifying
+    @Transactional
+    void deleteById(long id);
 }
