@@ -1,65 +1,51 @@
 package cz.cuni.mff.web_crawler_backend.service.crawler;
 
-import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
-import cz.cuni.mff.web_crawler_backend.database.model.Execution;
-import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
-import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
-import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
+import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
-    private final WebsiteRecordRepository websiteRecordRepository;
     private final CrawlerService crawlerService;
-    private final CrawlResultRepository crawlResultRepository;
-    private final ExecutionRepository executionRepository;
     private final ThreadPoolTaskScheduler taskScheduler;
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
     @Autowired
-    public SchedulingConfig(WebsiteRecordRepository websiteRecordRepository,
-                            CrawlerService crawlerService,
-                            ExecutionRepository executionRepository,
-                            ThreadPoolTaskScheduler taskScheduler,
-                            CrawlResultRepository crawlResultRepository) {
-        this.websiteRecordRepository = websiteRecordRepository;
+    public SchedulingConfig(CrawlerService crawlerService,
+                            ThreadPoolTaskScheduler taskScheduler) {
         this.crawlerService = crawlerService;
-        this.executionRepository = executionRepository;
         this.taskScheduler = taskScheduler;
-        this.crawlResultRepository = crawlResultRepository;
     }
 
-    public void scheduleCrawlingTask(Execution execution) {
-        List<CrawlResult> queue = new ArrayList<>();
+    /**
+     * Plan crawling calendar on given website record
+     *
+     * @param websiteRecord Information about how, where, when and what should be crawled
+     */
+    public void scheduleCrawlingTask(WebsiteRecord websiteRecord) {
+        Duration period = Duration.ofSeconds(websiteRecord.getPeriodicity().getTimeInSeconds());
 
-        CrawlResult root = new CrawlResult(execution.getWebsite().getUrl(), "TO BE SEARCHED", execution.getId());
-        queue.addLast(root);
-        crawlResultRepository.save(root);
-        websiteRecordRepository.updateCrawledData(root, execution.getWebsite().getId());
+        Runnable startNewExecutionTask = () -> crawlerService.startNewExecution(websiteRecord.getId());
+        ScheduledFuture<?> scheduledFuture = taskScheduler.scheduleWithFixedDelay(startNewExecutionTask, period);
 
-        Duration period = Duration.ofSeconds(execution.getWebsite().getPeriodicity().getTimeInSeconds());
-        String regexp = execution.getWebsite().getBoundaryRegExp();
-
-        Runnable crawlingTask = () -> crawlerService.crawl(queue, regexp, execution);
-        ScheduledFuture<?> scheduledFuture = taskScheduler.scheduleWithFixedDelay(crawlingTask, period);
-
-        scheduledTasks.put(execution.getId(), scheduledFuture);
+        scheduledTasks.put(websiteRecord.getId(), scheduledFuture);
     }
 
 
+    /**
+     * Cancel planned tasks
+     *
+     * @param taskId ID of task = ID of website record on which executions are happening
+     */
     public void cancelCrawlingTask(Long taskId) {
         ScheduledFuture<?> scheduledTask = scheduledTasks.get(taskId);
         if (scheduledTask != null) {

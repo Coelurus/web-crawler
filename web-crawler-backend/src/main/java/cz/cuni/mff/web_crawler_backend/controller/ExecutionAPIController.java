@@ -53,8 +53,20 @@ public class ExecutionAPIController {
      * @throws NotFoundException when no website record has parameter id
      */
     @PostMapping(value = "/execute/{wr_id}")
-    public ResponseEntity<Execution> startExecution(@PathVariable(name = "wr_id") Long wrId) {
+    public ResponseEntity<Void> startExecution(@PathVariable(name = "wr_id") Long wrId) {
         return executionService.startExecution(wrId);
+    }
+
+    /**
+     * Deactivate periodical executions for a given website record
+     *
+     * @param wrId ID of website record to stop executions on
+     * @return new execution object
+     * @throws NotFoundException when no website record has parameter id
+     */
+    @PostMapping(value = "/deactivate/{wr_id}")
+    public ResponseEntity<Void> deactivateExecution(@PathVariable(name = "wr_id") Long wrId) {
+        return executionService.deactivateExecution(wrId);
     }
 
 

@@ -3,9 +3,14 @@ package cz.cuni.mff.web_crawler_backend.service.crawler;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlLink;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import cz.cuni.mff.web_crawler_backend.database.model.Execution;
+import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
+import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
+import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
+import cz.cuni.mff.web_crawler_backend.service.api.CrawlService;
+import cz.cuni.mff.web_crawler_backend.service.api.WebsiteRecordService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,6 +21,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -28,31 +34,59 @@ public class CrawlerService {
     private final CrawlResultRepository crawlResultRepository;
     private final CrawlLinkRepository crawlLinkRepository;
     private final ExecutionRepository executionRepository;
+    private final WebsiteRecordRepository websiteRecordRepository;
+    private final CrawlService crawlService;
 
     @Autowired
     public CrawlerService(CrawlResultRepository crawlResultRepository,
                           CrawlLinkRepository crawlLinkRepository,
-                          ExecutionRepository executionRepository) {
+                          ExecutionRepository executionRepository,
+                          WebsiteRecordRepository websiteRecordRepository,
+                          CrawlService crawlService) {
         this.crawlResultRepository = crawlResultRepository;
         this.crawlLinkRepository = crawlLinkRepository;
         this.executionRepository = executionRepository;
+        this.websiteRecordRepository = websiteRecordRepository;
+        this.crawlService = crawlService;
     }
 
     /**
      * Go through page and find all links. Save them. And go through them. Rinse and repeat
      *
-     * @param queue     Queue of pages that have to be crawled
-     * @param regexp    Regular expression by which page links are matched
-     * @param execution Execution object that has invoked this crawling
+     * @param websiteRecordId ID of website record which is used to invoke the execution
      */
-    public void crawl(List<CrawlResult> queue, String regexp, Execution execution) {
+    public void startNewExecution(Long websiteRecordId) {
+        WebsiteRecord websiteRecord =
+                websiteRecordRepository.findById(websiteRecordId).orElseThrow(() -> new NotFoundException("Website record"));
+        // Create new execution
+        Execution execution = new Execution(websiteRecord);
+        executionRepository.save(execution);
+
+        // Create and add first website to crawl queue
+        List<CrawlResult> queue = new ArrayList<>();
+        CrawlResult root = new CrawlResult(websiteRecord.getUrl(), "TO BE SEARCHED", execution.getId());
+        queue.addLast(root);
+
+        // Delete old crawl results and links
+        if (websiteRecord.getCrawledData() != null) {
+            websiteRecordRepository.updateCrawledData(null, websiteRecord.getId());
+            crawlService.deleteAllCrawlDataByExecutionId(websiteRecord.getCrawledData().getExecutionId());
+        }
+
+
+        // Save this new crawl data and update wr record
+        crawlResultRepository.save(root);
+        websiteRecordRepository.updateCrawledData(root, websiteRecord.getId());
+
+        // Start crawling
         executionRepository.updateStatusAndTime("STARTED", null, execution.getId());
         try {
-            goThroughCrawlQueue(queue, regexp, execution);
+            goThroughCrawlQueue(queue, websiteRecord.getBoundaryRegExp(), execution);
             executionRepository.updateStatusAndTime("FINISHED", ZonedDateTime.now(), execution.getId());
         } catch (Exception e) {
             executionRepository.updateStatusAndTime("FAILED", ZonedDateTime.now(), execution.getId());
         }
+
     }
 
     /**
@@ -132,7 +166,6 @@ public class CrawlerService {
 
                 Matcher matcher = pattern.matcher(href);
 
-                // TODO resolve too long  urls
                 if (href.length() > 255) {
                     CrawlResult son = new CrawlResult(href.substring(0, 252) + "...",
                             "URL TOO LONG", executionId);

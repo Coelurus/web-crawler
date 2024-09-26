@@ -59,17 +59,26 @@ public class ExecutionService {
      * Trigger new execution for a given website record
      *
      * @param wrId ID of website record to execute
-     * @return new execution object
+     * @return ok status
      * @throws NotFoundException when no website record has parameter id
      */
-    public ResponseEntity<Execution> startExecution(Long wrId) {
-        WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElse(null);
-        if (wr == null) {
-            throw new NotFoundException("WebsiteRecord");
-        }
-        Execution ex = executionRepository.save(new Execution(wr));
-        schedulingConfig.scheduleCrawlingTask(ex);
-        return ResponseEntity.ok(ex);
+    public ResponseEntity<Void> startExecution(Long wrId) {
+        WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+
+        schedulingConfig.scheduleCrawlingTask(wr);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Deactivate periodical executions for a given website record
+     *
+     * @param wrId ID of website record to stop executions on
+     * @return ok status
+     * @throws NotFoundException when no website record has parameter id
+     */
+    public ResponseEntity<Void> deactivateExecution(Long wrId) {
+        schedulingConfig.cancelCrawlingTask(wrId);
+        return ResponseEntity.ok().build();
     }
 
     /**

@@ -31,4 +31,5 @@ public interface ExecutionRepository extends JpaRepository<Execution, Long> {
     @Transactional
     @Modifying
     void deleteByWebsiteId(Long websiteId);
+    
 }

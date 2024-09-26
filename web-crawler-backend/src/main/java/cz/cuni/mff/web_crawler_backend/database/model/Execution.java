@@ -10,11 +10,11 @@ import java.time.ZonedDateTime;
 @Table(name = "executions")
 public class Execution {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
     private Long id;
 
-    @OneToOne()
+    @ManyToOne
     @JoinColumn(name = "wr_id", referencedColumnName = "id", nullable = false)
     private WebsiteRecord website;
 
@@ -36,6 +36,11 @@ public class Execution {
         startTime = ZonedDateTime.now();
         endTime = null;
         crawledCount = 0;
+    }
+
+    public Execution(WebsiteRecord caller, Long id) {
+        this(caller);
+        this.id = id;
     }
 
     public Execution() {

@@ -22,4 +22,7 @@ public interface WebsiteRecordRepository extends JpaRepository<WebsiteRecord, Lo
     @Modifying
     @Transactional
     void deleteById(long id);
+
+    @Query("select max(id) from WebsiteRecord ")
+    Long findMaxId();
 }

@@ -156,4 +156,14 @@ public class WebsiteRecordService {
         websiteRecordRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Set new crawl root for website record
+     *
+     * @param root New CrawlResult to set as root for website record
+     * @param id   ID of website record whose crawl result to set
+     */
+    public void updateCrawledData(CrawlResult root, Long id) {
+        websiteRecordRepository.updateCrawledData(root, id);
+    }
 }

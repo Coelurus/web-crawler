@@ -1,5 +1,7 @@
 package cz.cuni.mff.web_crawler_backend.database.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -43,6 +45,11 @@ public class WebsiteRecord {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "result_record", referencedColumnName = "id", nullable = true)
     private CrawlResult crawledData;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "website")
+    private List<Execution> executions;
+
 
     public WebsiteRecord(String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active) {
         this.label = label;
