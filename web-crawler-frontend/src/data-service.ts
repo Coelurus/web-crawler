@@ -6,27 +6,26 @@ import CrawledWeb from "./Graph/CrawledWeb";
 export async function fetchRecords(): Promise<Record[]> {
     const responseWebsites = await fetch("/api/websites")
     const records: Record[] = await responseWebsites.json()
-    records.forEach(record => {
+
+    await Promise.all(records.map(async (record) => {
         if (record.crawledData !== null) {
-            fetch("/api/executions/" + record.crawledData.executionId).then(response => {
+            const response = await fetch("/api/executions/" + record.crawledData.executionId)
+            const execution = await response.json()
 
-                response.json().then(execution =>{
-                    
-                    record.lastExecution = execution.startTime
-                    const timeOfExecMilliseconds: number = new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
-                    if (execution.status.toLowerCase() === 'failed'){
-                        record.timeOfExecution = 'FAILED'
-                    }
-                    else{
-                        record.timeOfExecution = Math.round(timeOfExecMilliseconds / (1000 * 60)).toString() + 'm ' + Math.round((timeOfExecMilliseconds - Math.round(timeOfExecMilliseconds / (1000 * 60))*(1000 * 60)) / (1000)).toString() + 's'
-                    }
-                })
-            })
+            record.lastExecution = execution.startTime
 
-            // const execution: Execution = await responseExec.json()
+            const timeOfExecMilliseconds: number =
+                new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
+
+            if (execution.status.toLowerCase() === 'failed') {
+                record.timeOfExecution = 'FAILED'
+            } else {
+                const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
+                const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
+                record.timeOfExecution = `${minutes}m ${seconds}s`
+            }
         }
-
-    })
+    }))
     return records
 }
 export async function fetchTags(): Promise<string[]> {
