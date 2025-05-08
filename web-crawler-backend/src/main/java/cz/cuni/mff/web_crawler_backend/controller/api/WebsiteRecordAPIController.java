@@ -1,4 +1,4 @@
-package cz.cuni.mff.web_crawler_backend.controller;
+package cz.cuni.mff.web_crawler_backend.controller.api;
 
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.service.api.WebsiteRecordService;

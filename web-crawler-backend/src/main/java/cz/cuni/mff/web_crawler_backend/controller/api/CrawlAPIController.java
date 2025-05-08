@@ -1,4 +1,4 @@
-package cz.cuni.mff.web_crawler_backend.controller;
+package cz.cuni.mff.web_crawler_backend.controller.api;
 
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlLink;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
