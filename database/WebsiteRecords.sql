@@ -11,6 +11,12 @@ CREATE TABLE WebsiteRecords
     result_record int
 );
 
+ALTER TABLE WebsiteRecords
+    ADD CONSTRAINT fk_result_record
+        FOREIGN KEY (result_record)
+            REFERENCES crawlresults (id)
+            ON DELETE SET NULL;
+
 INSERT INTO WebsiteRecords (id, label, url, regex, time_id, active)
 VALUES (0, 'task',
         'https://webik.ms.mff.cuni.cz/nswi153/seminar-project-webcrawler.html',
