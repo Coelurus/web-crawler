@@ -26,4 +26,6 @@ public interface CrawlResultRepository extends JpaRepository<CrawlResult, Long> 
     @Modifying
     void deleteByExecutionId(Long executionId);
 
+    List<CrawlResult> findAllByExecutionIdIn(List<Long> executionIds);
+
 }

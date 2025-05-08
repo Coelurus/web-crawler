@@ -17,4 +17,6 @@ public interface CrawlLinkRepository extends JpaRepository<CrawlLink, Long> {
     @Transactional
     @Modifying
     void deleteByExecutionId(Long executionId);
+
+    List<CrawlLink> findByFrom(Long from);
 }

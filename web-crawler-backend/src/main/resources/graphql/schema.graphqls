@@ -1,0 +1,21 @@
+type Query{
+    websites: [WebPage!]!
+    nodes(webPages: [ID!]): [Node!]!
+}
+
+type WebPage{
+    id: ID!
+    label: String!
+    url: String!
+    boundaryRegExp: String!
+    tags: [String!]!
+    active: Boolean!
+}
+
+type Node{
+    title: String
+    url: String!
+    crawlTime: String
+    links: [Node!]!
+    owner: WebPage!
+}

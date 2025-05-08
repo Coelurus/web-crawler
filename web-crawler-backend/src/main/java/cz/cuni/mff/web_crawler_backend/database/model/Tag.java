@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="tags")
+@Table(name = "tags")
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,10 +18,16 @@ public class Tag {
     @Column(name = "wr_id")
     private Long wr_id;
 
-    public Tag(){}
+    public Tag() {
+    }
 
     public Tag(String name, Long wr_id) {
         this.name = name;
         this.wr_id = wr_id;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
