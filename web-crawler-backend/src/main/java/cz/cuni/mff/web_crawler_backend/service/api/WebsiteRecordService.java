@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 @Service
 public class WebsiteRecordService {
@@ -75,6 +77,12 @@ public class WebsiteRecordService {
 
         if (boundaryRegExp == null) {
             throw new FieldValidationException("boundaryRegExp");
+        } else {
+            try {
+                Pattern.compile(boundaryRegExp);
+            } catch (PatternSyntaxException e) {
+                throw new FieldValidationException("boundaryRegExp");
+            }
         }
 
         PeriodicityTime periodicityTime = new PeriodicityTime(periodicity);
