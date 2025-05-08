@@ -6,7 +6,16 @@ import RecordsTable from './RecordsTable'
 import Record from './Record'
 
 
-export default function Records({records, tags, setEditingRecord, setChange}:{records:Record[], tags:string[], setEditingRecord:Dispatch<SetStateAction<Record|null>>, setChange:Dispatch<SetStateAction<boolean>>}){
+type RecordsProps = {
+  records:Record[], 
+  tags:string[], 
+  setEditingRecord:Dispatch<SetStateAction<Record|null>>, 
+  setChange:Dispatch<SetStateAction<boolean>>
+}
+
+export default function Records({records, tags, setEditingRecord, setChange}: RecordsProps)
+    {
+
     const [url, setUrl] = useState('')
     const [label, setLabel] = useState('')
     const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -38,10 +47,10 @@ export default function Records({records, tags, setEditingRecord, setChange}:{re
           sortByUrl={sortByUrl}
           tags={tags}
           selectedTags={selectedTags}
-          setUrl={handleUrlChange} 
-          setLabel={handleLableChange} 
-          setSelectedTags={handleTagsChange}
-          setSortByUrl={handleSortChange}
+          onUrlChange={handleUrlChange} 
+          onLabelChange={handleLableChange} 
+          onSelectedTagsChange={handleTagsChange}
+          onSortByUrlChange={handleSortChange}
         />
         <RecordsTable 
           records={records} 

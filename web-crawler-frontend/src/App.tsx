@@ -38,9 +38,9 @@ export default function App() {
     fetchRecords().then(data => {
       setRecords(data)
     })
-    // fetchLinks().then(data =>{
-    //   setLinks(data)
-    // })
+    fetchLinks().then(data =>{
+      setLinks(data)
+    })
     fetchTags().then(data => {
       setTags(data)
     })
@@ -59,7 +59,7 @@ export default function App() {
 
       if (domainView){ // get nodes with the same domain to one node
         let domains:string[] = []
-        const domainRegex:RegExp = /:\/\/(.[^\/])*\//
+        const domainRegex:RegExp = /:\/\/(.[^\/])*\// // characters between :// and first /
         let domainNodes:NodeObject[] = []
 
         let webToDomainId:{[key: number]: number} = []
