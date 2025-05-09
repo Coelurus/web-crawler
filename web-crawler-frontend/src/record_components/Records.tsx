@@ -12,6 +12,7 @@ export default function Records({records, tags, setEditingRecord, setChange}:{re
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
     //TODO: sort by
+    //TODO: hodit filry do jednoho [filters, setFilters] = useState({url: '', ...})
 
 
     const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {

@@ -1,5 +1,5 @@
 
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import './css/App.css'
 import Records from "./record_components/Records"
 import Record from './record_components/Record'
@@ -9,25 +9,14 @@ import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service
 import CreateRecordDialog from './CreateRecordDialog'
 import EditRecordDialog from './EditRecordDialog'
 import CrawledDetail from './Graph/CrawledDetail'
+import CrawledWeb from './Graph/CrawledWeb'
 
 
 export default function App() {
-  
-  // const recordsDummy = [
-  //   new Record(0, 'webik', 'https://webik.ms.mff.cuni.cz', '.*wiki.*', '1:20:00', ['UNI', 'WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04' ),
-  //   new Record(1, 'Wiki', 'https://cs.wikipedia.org', '*.wiki.*', '00:24:00', ['WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(2, 'test', 'https://a.b.cz', '*aaa*', '00:00:30', ['UNI'],new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(3, 'webik1', 'https://webik.ms.mff.cuni.cz', '.*wiki.*', '1:20:00', ['UNI', 'WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04' ),
-  //   new Record(4, 'Wiki1', 'https://cs.wikipedia.org', '*.wiki.*', '00:24:00', ['WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(5, 'test1', 'https://a.b.cz', '*aaa*', '00:00:30', ['UNI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(6, 'webik2', 'https://webik.ms.mff.cuni.cz', '.*wiki.*', '1:20:00', ['UNI', 'WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04' ),
-  //   new Record(7, 'Wiki2', 'https://cs.wikipedia.org', '*.wiki.*', '00:24:00', ['WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(8, 'test2', 'https://a.b.cz', '*aaa*', '00:00:30', ['UNI'], new Date('2017-07-21T17:32:28Z'), '362:05:04')
-  // ]
-  // const [records, setRecords] = useState<Record[]>(recordsDummy)
+
   const [records, setRecords] = useState<Record[]>([])
+  const [crawls, setCrawls] = useState<CrawledWeb[]>([])
   const [links, setLinks] = useState<LinkObject[]>([])
-  const [nodes, setNodes] = useState<NodeObject[]>([])
   const [change, setChange] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
@@ -35,18 +24,19 @@ export default function App() {
   const [selectedNode, setSelectedNode] = useState<NodeObject|null>(null)
 
   useEffect(() => {
-    fetchRecords().then(data => {
-      setRecords(data)
-    })
-    // fetchLinks().then(data =>{
-    //   setLinks(data)
-    // })
-    fetchTags().then(data => {
-      setTags(data)
-    })
-    fetchCrawls().then(data => {
-      const allNodes = data.map<NodeObject>(crawl => {
-        return{
+    fetchRecords().then(setRecords)
+    fetchLinks().then(setLinks)
+    fetchTags().then(setTags)
+    fetchCrawls().then(setCrawls)
+
+  }, [change])
+
+  console.log("crawls", crawls)
+  const {processedNodes, webToDomain: webToDomain}: {processedNodes: NodeObject[], webToDomain: {[key: number]: string}} = useMemo(() => {
+    if (crawls.length === 0) return {processedNodes: [], webToDomain: {}}
+    if (!domainView){
+      return { 
+        processedNodes: crawls.map(crawl => ({
           id: crawl.id,
           label: crawl.title.substring(0, 20),
           url: crawl.url,
@@ -54,59 +44,58 @@ export default function App() {
           color: 'darkgreen',
           state: crawl.state,
           crawlTime: crawl.crawlTime
-        }
-      })
-
-      if (domainView){ // get nodes with the same domain to one node
-        let domains:string[] = []
-        const domainRegex:RegExp = /:\/\/(.[^\/])*\//
-        let domainNodes:NodeObject[] = []
-
-        let webToDomainId:{[key: number]: number} = []
-
-        allNodes.forEach(node => {
-          const match = node.url.match(domainRegex)
-          if (match){
-              const domain = match[0].slice(3, match[0].length)
-              
-              if (!domains.includes(domain)){
-                domains.push(domain)
-                node.label = domain
-                domainNodes.push(node)
-                webToDomainId[node.id as number] = node.id as number
-              }
-              else{
-                const foundNode = domainNodes.find(node => {
-                  const domainMatch = node.url.match(domainRegex)![0]
-                  return domainMatch.slice(3,domainMatch.length) === domain
-
-                })
-                webToDomainId[node.id as number] = foundNode!.id as number
-              }
-          }
-          
-        })
-        fetchLinks().then(data => {
-          setLinks(data.map<LinkObject>(link => {
-            return { 
-              source: webToDomainId[link.source as number], 
-              target: webToDomainId[link.target as number]} // change web id to domain id
-          }))
-        })
-        setNodes(domainNodes)
-      }else{
-        fetchLinks().then(data => {setLinks(data)})
-        setNodes(allNodes)  
+        })), 
+        webToDomain: {}
       }
+    }
+    let domains:string[] = []
+    const domainRegex:RegExp = /:\/\/([^\/?#]+)/
+    let domainNodes:NodeObject[] = []
+
+    let webToDomain:{[key: number]: string} = {}
+
+    crawls.forEach(crawl => {
+      const match = crawl.url.match(domainRegex)
+      if (!match) return
+      const domain = match[1]
       
+      const baseNode: NodeObject = {
+        id: domain,
+        label: domain,
+        url: crawl.url,
+        executionId: crawl.executionId,
+        color: 'darkgreen',
+        state: crawl.state,
+        crawlTime: crawl.crawlTime
+      }
+
+      if (!domains.includes(domain)){
+        domains.push(domain)
+        domainNodes.push(baseNode)
+      }
+      webToDomain[crawl.id as number] = domain
     })
-  }, [change])
+    return {processedNodes: domainNodes, webToDomain: webToDomain}
+
+  }, [crawls, domainView, change])
+
+const processedLinks = useMemo(() => {
+  if (!domainView) return links
+
+  return links
+    .filter(link => webToDomain[link.source as number] && webToDomain[link.target as number]) // filter the loaded nodes
+    .map<LinkObject>(link => ({
+      source: webToDomain[link.source as number],
+      target: webToDomain[link.target as number]
+    }))
+}, [links, domainView, webToDomain])
+  console.log(webToDomain)
   const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
     
     setDomainView(event.currentTarget.checked)
     setChange(prevState => !prevState)
   }
-
+  console.log("GRAPH DATA", {nodes: processedNodes, links: processedLinks})
   return(
     <>
       <CreateRecordDialog setChange={setChange}/>
@@ -125,7 +114,7 @@ export default function App() {
       <div id='graph'>
         {selectedNode && <><CrawledDetail node={selectedNode} setNode={setSelectedNode}/> </>}
         <ForceGraph 
-          graphData={{nodes: nodes, links: links}} 
+          graphData={{nodes: processedNodes, links: processedLinks}} 
           width={750}
           backgroundColor='lightblue'
           nodeAutoColorBy={(node) => node.state}
