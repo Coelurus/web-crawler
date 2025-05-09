@@ -1,9 +1,9 @@
 
-import { ChangeEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useState, useRef } from 'react'
 import './css/App.css'
 import Records from "./record_components/Records"
 import Record from './record_components/Record'
-import ForceGraph, { LinkObject, NodeObject } from 'react-force-graph-2d'
+import ForceGraph2D, { LinkObject, NodeObject, ForceGraphMethods  } from 'react-force-graph-2d'
 
 import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CreateRecordDialog from './CreateRecordDialog'
@@ -20,18 +20,28 @@ export default function App() {
   const [change, setChange] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
-  const [domainView, setDomainView] = useState<boolean>(true)
+  const [domainView, setDomainView] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<NodeObject|null>(null)
 
-  useEffect(() => {
-    fetchRecords().then(setRecords)
-    fetchLinks().then(setLinks)
-    fetchTags().then(setTags)
-    fetchCrawls().then(setCrawls)
 
+  useEffect(() => {
+    const fetchAll = async () => {
+      const [recordsData, linksData, tagsData, crawlsData] = await Promise.all([
+        fetchRecords(),
+        fetchLinks(),
+        fetchTags(),
+        fetchCrawls()
+      ])
+
+      setRecords(recordsData)
+      setLinks(linksData)
+      setTags(tagsData)
+      setCrawls(crawlsData)
+    }
+
+    fetchAll()
   }, [change])
 
-  console.log("crawls", crawls)
   const {processedNodes, webToDomain: webToDomain}: {processedNodes: NodeObject[], webToDomain: {[key: number]: string}} = useMemo(() => {
     if (crawls.length === 0) return {processedNodes: [], webToDomain: {}}
     if (!domainView){
@@ -43,7 +53,7 @@ export default function App() {
           executionId: crawl.executionId,
           color: 'darkgreen',
           state: crawl.state,
-          crawlTime: crawl.crawlTime
+          crawlTime: crawl.crawlTime,
         })), 
         webToDomain: {}
       }
@@ -56,7 +66,7 @@ export default function App() {
 
     crawls.forEach(crawl => {
       const match = crawl.url.match(domainRegex)
-      if (!match) return
+      if (!match) return // not a valid url
       const domain = match[1]
       
       const baseNode: NodeObject = {
@@ -66,7 +76,7 @@ export default function App() {
         executionId: crawl.executionId,
         color: 'darkgreen',
         state: crawl.state,
-        crawlTime: crawl.crawlTime
+        crawlTime: crawl.crawlTime,
       }
 
       if (!domains.includes(domain)){
@@ -80,7 +90,7 @@ export default function App() {
   }, [crawls, domainView, change])
 
 const processedLinks = useMemo(() => {
-  if (!domainView) return links
+  if (!domainView) return links.filter(link => link.source && link.target)
 
   return links
     .filter(link => webToDomain[link.source as number] && webToDomain[link.target as number]) // filter the loaded nodes
@@ -89,13 +99,12 @@ const processedLinks = useMemo(() => {
       target: webToDomain[link.target as number]
     }))
 }, [links, domainView, webToDomain])
-  console.log(webToDomain)
   const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
     
     setDomainView(event.currentTarget.checked)
     setChange(prevState => !prevState)
   }
-  console.log("GRAPH DATA", {nodes: processedNodes, links: processedLinks})
+  console.log("graph data", {nodes: processedNodes, links: processedLinks})
   return(
     <>
       <CreateRecordDialog setChange={setChange}/>
@@ -106,14 +115,12 @@ const processedLinks = useMemo(() => {
       <span>View: </span>
       <label htmlFor="domain-radio">domain
         
-      <input type="radio" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-radio'/>
-      </label>
-      <label htmlFor="web-radio">web
-        <input type="radio" name='graph-visual' id='web-radio'/>
+        <input type="checkbox" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-radio'/>
       </label>
       <div id='graph'>
         {selectedNode && <><CrawledDetail node={selectedNode} setNode={setSelectedNode}/> </>}
-        <ForceGraph 
+        <ForceGraph2D 
+
           graphData={{nodes: processedNodes, links: processedLinks}} 
           width={750}
           backgroundColor='lightblue'
@@ -125,13 +132,13 @@ const processedLinks = useMemo(() => {
             const fontSize = 12/globalScale;
             ctx.font = `${fontSize}px Sans-Serif`;
             const textWidth = ctx.measureText(label).width;
-            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); 
+            const bckgDimensions = [textWidth,fontSize].map(n => n + fontSize * 0.2);
+ 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            // ctx.fillStyle = node.color;
             if (node.state === 'SEARCHED'){
               ctx.fillStyle = node.color;
             }
