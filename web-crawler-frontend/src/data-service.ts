@@ -10,19 +10,30 @@ export async function fetchRecords(): Promise<Record[]> {
     await Promise.all(records.map(async (record) => {
         if (record.crawledData !== null) {
             const response = await fetch("/api/executions/" + record.crawledData.executionId)
-            const execution = await response.json()
+            const execution: Execution = await response.json()
 
             record.lastExecution = execution.startTime
 
             const timeOfExecMilliseconds: number =
                 new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
 
-            if (execution.status.toLowerCase() === 'failed') {
-                record.timeOfExecution = 'FAILED'
-            } else {
-                const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
-                const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
-                record.timeOfExecution = `${minutes}m ${seconds}s`
+            switch (execution.status.toLocaleLowerCase()) {
+                case 'failed':
+                    record.timeOfExecution = 'FAILED'
+                    break;
+                case 'pending':
+                    record.timeOfExecution = 'PENDING'
+                    break;
+                case 'in_progress':
+                    record.timeOfExecution = 'IN PROGRESS'
+                    break;
+                case 'finished':
+                    const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
+                    const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
+                    record.timeOfExecution = `${minutes}m ${seconds}s`
+                    break;
+                default:
+                    break;
             }
         }
     }))
@@ -71,7 +82,7 @@ export async function deleteRecord(id: number) {
     })
 
     if (!response.ok) {
-        throw new Error('Network resopnse was not ok')
+        throw new Error('Error occurred when deleting record')
     }
     return response.json()
 }

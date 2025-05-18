@@ -121,8 +121,8 @@ public class WebsiteRecordService {
      * @param id ID of record to update
      * @return ok response with updated object
      */
-    public ResponseEntity<WebsiteRecord> updateRecord(Long id, String label, String url, String boundaryRegExp,
-                                                      String periodicity, String tags, Boolean active) {
+    public WebsiteRecord updateRecord(Long id, String label, String url, String boundaryRegExp,
+                                      String periodicity, String tags, Boolean active) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
 
         boolean deleteData = false;
@@ -159,10 +159,11 @@ public class WebsiteRecordService {
         // Delete previously crawled data since it is outdated
         if (deleteData) {
             deleteAssociatedData(id);
+            wr.setCrawledData(null);
         }
 
         websiteRecordRepository.save(wr);
-        return ResponseEntity.ok(wr);
+        return wr;
     }
 
     /**

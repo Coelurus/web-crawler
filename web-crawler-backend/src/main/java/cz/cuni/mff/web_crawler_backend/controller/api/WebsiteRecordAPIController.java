@@ -75,7 +75,8 @@ public class WebsiteRecordAPIController {
                                                       @RequestParam(name = "periodicity") String periodicity,
                                                       @RequestParam(name = "tags") String tags,
                                                       @RequestParam(name = "active") Boolean active) {
-        return websiteRecordService.updateRecord(id, label, url, boundaryRegExp, periodicity, tags, active);
+        WebsiteRecord updated = websiteRecordService.updateRecord(id, label, url, boundaryRegExp, periodicity, tags, active);
+        return ResponseEntity.ok(updated);
     }
 
     /**

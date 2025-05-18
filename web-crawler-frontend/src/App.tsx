@@ -45,7 +45,7 @@ export default function App() {
   const {processedNodes, webToDomain: webToDomain}: {processedNodes: NodeObject[], webToDomain: {[key: number]: string}} = useMemo(() => {
     if (crawls.length === 0) return {processedNodes: [], webToDomain: {}}
     if (!domainView){
-      return { 
+      return {
         processedNodes: crawls.map(crawl => ({
           id: crawl.id,
           label: crawl.title.substring(0, 20),
@@ -54,7 +54,7 @@ export default function App() {
           color: 'darkgreen',
           state: crawl.state,
           crawlTime: crawl.crawlTime,
-        })), 
+        })),
         webToDomain: {}
       }
     }
@@ -68,7 +68,7 @@ export default function App() {
       const match = crawl.url.match(domainRegex)
       if (!match) return // not a valid url
       const domain = match[1]
-      
+
       const baseNode: NodeObject = {
         id: domain,
         label: domain,
@@ -119,9 +119,9 @@ const processedLinks = useMemo(() => {
       </label>
       <div id='graph'>
         {selectedNode && <><CrawledDetail node={selectedNode} setNode={setSelectedNode}/> </>}
-        <ForceGraph2D 
+        <ForceGraph2D
 
-          graphData={{nodes: processedNodes, links: processedLinks}} 
+          graphData={{nodes: processedNodes, links: processedLinks}}
           width={750}
           backgroundColor='lightblue'
           nodeAutoColorBy={(node) => node.state}
@@ -133,7 +133,7 @@ const processedLinks = useMemo(() => {
             ctx.font = `${fontSize}px Sans-Serif`;
             const textWidth = ctx.measureText(label).width;
             const bckgDimensions = [textWidth,fontSize].map(n => n + fontSize * 0.2);
- 
+
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
 
