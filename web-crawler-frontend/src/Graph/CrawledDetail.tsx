@@ -8,9 +8,9 @@ export default function CrawledDetail({node, setNode}:{node:NodeObject|null, set
         <>
             {node && 
             <div id="crawled-detail">
-                <h3>Crawl Detail</h3>
-                <p>url: {node.url}</p>
-                <p>crawl time: {node.crawlTime}</p>
+                <h2>Crawl Detail</h2>
+                <p><b>URL:</b> <a href={node.url}>{node.url}</a></p>
+                {node.crawlTime && <p><b>Crawl time:</b> {node.crawlTime}</p>}
                 {/* <ul id="website-list">
                     {node.records.map((record:CrawledWeb) => {
                         <li key={record.id}>{record.title}
