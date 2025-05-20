@@ -83,11 +83,10 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
                 <button type="button" id="addTag" onClick={addTag} >Add tag</button>
                 <ul>
                     {tags.map(tag => (
-                        <>
-                            <li key={tag} className="tag">{tag}
-                                <button type="button" onClick={deleteTag} >X</button></li>
-
-                        </>
+                            <li key={tag}>
+                                <span className="tag">{tag}</span>
+                                <button type="button" onClick={deleteTag} >X</button>
+                            </li>
                     ))}
                 </ul>
                 <br />

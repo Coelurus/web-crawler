@@ -9,7 +9,7 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
     const [day, setDay] = useState(0)
     const [hour, setHour] = useState(0)
     const [minute, setMinute] = useState(10)
-    const [tag, setTag] = useState('')
+    const [currentTag, setCurrentTag] = useState('')
     const [tags, setTags] = useState<string[]>([])
 
     const handleDayChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -22,18 +22,18 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
         setMinute(Number(e.target.value))
     }
     const handleTagChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setTag(e.target.value)
+        setCurrentTag(e.target.value)
     }
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
-        const tagEl = event.currentTarget.parentNode!
+        const tagEl = event.currentTarget.parentNode!.firstChild!
         const tagText = tagEl.textContent
-        setTags(tags.filter(tag => tag+'X' !== tagText!.slice(0,tagEl.textContent!.length-1)))
+        setTags(tags.filter(tag => tag !== tagText!))
         tagEl.parentNode!.removeChild(tagEl)
         
     }
     const addTag = () => {
-        setTags([...tags, tag])
-        setTag('')
+        setTags([...tags, currentTag])
+        setCurrentTag('')
     }
     const toggleCreateDialog = (event: React.MouseEvent<HTMLButtonElement>) => {
         
@@ -89,21 +89,19 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
                     <label htmlFor="postMinute">Minutes:
                         <input type="number" id="postMinute" onChange={handleMinuteChange} min={0} max={59}/>
                     </label>
-                    <label htmlFor="postTags"></label>
-                    <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden/>
+                    <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden readOnly/>
                 
                     <br />
-                    <input type="text" id="tag" value={tag} onChange={handleTagChange}/>
+                    <input type="text" id="tag" value={currentTag} onChange={handleTagChange}/>
                     <button type="button" id="addTag" onClick={addTag} >Add tag</button>
-                    <ul>
+                    <div>
                         {tags.map(tag => (
-                            <>
-                                <li key={tag} className="tag" >{tag}
-                                    <button key={tag+'-btn'} type="button" onClick={deleteTag} >X</button></li>
-                                
-                            </>
+                                <li key={tag}>
+                                    <span className="tag">{tag}</span>
+                                    <button type="button" onClick={deleteTag} >X</button>
+                                </li>
                         ))}
-                    </ul>
+                    </div>
                     <br />
                     <button type="submit" value="Submit" >Submit</button>
                 </form>
