@@ -18,6 +18,7 @@ export default function CrawledDetail({node, setNode}:{node:NodeObject|null, set
                     })}
 
                 </ul> */}
+                <p><b>Execution: </b> {node.executionId}</p>
                 <button onClick={() => setNode(null)}>Close</button>
             </div>}
         </>

@@ -5,6 +5,8 @@ import { deleteRecord } from '../data-service'
 
 type RecordsTableProps = {
     records:Array<Record>, 
+    activeRecordIds: Array<number>,
+    setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
     itemsPerPage:number, 
     sortByUrl:boolean, 
     searchLabel:string, 
@@ -14,7 +16,7 @@ type RecordsTableProps = {
     setChange:Dispatch<SetStateAction<boolean>>
 }
 
-export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
+export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, sortByUrl, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
     const [currentPage, setCurrentPage] = useState(1)
 
     const searchRecords = records.filter(record => 
@@ -48,6 +50,20 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
         return Math.floor(itemsCount/itemsPerPage)+1
     }
 
+    function changeActiveRecord(record_id: number){
+        if (isActive(record_id)) {
+            setActiveRecordIds(prev => prev.filter(record_id_item => record_id_item !== record_id))
+        }
+        else { 
+            setActiveRecordIds(prev => [...prev, record_id]) 
+        }
+        setChange(prevState => !prevState)
+    }
+
+    function isActive(record_id: number){
+        return activeRecordIds.includes(record_id)
+    }
+
     return(
         <>
             <table>
@@ -58,6 +74,7 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                         <th>Periodicity</th>
                         <th>Time of execution</th>
                         <th>Last execution</th>
+                        {/* <th>Status of last execution</th> */}
                         <th>View in graph</th>
                         <th></th>
                         <th></th>
@@ -72,8 +89,9 @@ export default function RecordsTable({records, itemsPerPage, sortByUrl, searchLa
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
                             <td>{record.timeOfExecution && record.timeOfExecution}</td>
-                            <td>{record.lastExecution && record.lastExecution.toLocaleString()}</td>
-                            <td><input type="checkbox" name="" id={'checkbox-' + record.id} /></td>
+                            <td>{record.lastExecution && new Date(record.lastExecution).toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
+                            {/* <td>{record.}</td> */}
+                            <td><input type="checkbox" name="" id={'checkbox-' + record.id} checked={isActive(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>
                             <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
                             <td><button onClick={() => {deleteRecord(record.id); setChange(prevState => !prevState)}}>Delete</button></td>
                         </tr>

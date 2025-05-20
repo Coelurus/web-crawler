@@ -59,8 +59,8 @@ class LinkResponse {
     }
 }
 
-export async function fetchLinks(): Promise<LinkObject[]> {
-    const response = await fetch("/api/crawl/link")
+export async function fetchLinks(execution_id: number|undefined = undefined): Promise<LinkObject[]> {
+    const response = execution_id ? await fetch(`/api/crawl/link/${execution_id}`) : await fetch("/api/crawl/link")
     const linkResponses: LinkResponse[] = await response.json()
     return linkResponses.map<LinkObject>(linkRes => {
         return {
@@ -70,10 +70,11 @@ export async function fetchLinks(): Promise<LinkObject[]> {
     })
 }
 
-export async function fetchCrawls(): Promise<CrawledWeb[]> {
-    const response = await fetch("/api/crawl/data")
-
-    return await response.json()
+export async function fetchCrawls(execution_id: number|undefined = undefined): Promise<CrawledWeb[]> {
+    
+    const response = execution_id ? await fetch(`/api/crawl/data/${execution_id}`) : await fetch("/api/crawl/data")
+    const result = await response.json()
+    return result
 }
 
 export async function deleteRecord(id: number) {

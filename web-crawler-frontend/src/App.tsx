@@ -15,8 +15,9 @@ import CrawledWeb from './Graph/CrawledWeb'
 export default function App() {
 
   const [records, setRecords] = useState<Record[]>([])
-  const [crawls, setCrawls] = useState<CrawledWeb[]>([])
-  const [links, setLinks] = useState<LinkObject[]>([])
+  const [activeRecordIds, setActiveRecordIds] = useState<number[]>([])
+  const [allCrawls, setAllCrawls] = useState<CrawledWeb[]>([])
+  const [allLinks, setAllLinks] = useState<LinkObject[]>([])
   const [change, setChange] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
@@ -26,6 +27,7 @@ export default function App() {
 
   useEffect(() => {
     const fetchAll = async () => {
+
       const [recordsData, linksData, tagsData, crawlsData] = await Promise.all([
         fetchRecords(),
         fetchLinks(),
@@ -34,21 +36,35 @@ export default function App() {
       ])
 
       setRecords(recordsData)
-      setLinks(linksData)
+      setAllLinks(linksData)
       setTags(tagsData)
-      setCrawls(crawlsData)
+      setAllCrawls(crawlsData)
     }
 
     fetchAll()
   }, [change])
 
-  const {processedNodes, webToDomain: webToDomain}: {processedNodes: NodeObject[], webToDomain: {[key: number]: string}} = useMemo(() => {
-    if (crawls.length === 0) return {processedNodes: [], webToDomain: {}}
+
+  type NodesDomainMapping = {processedNodes: NodeObject[], webToDomain: {[key: number]: string}}
+
+  const {processedNodes, webToDomain}: NodesDomainMapping = useMemo(processNodes, [allCrawls, domainView, change])
+
+  const processedLinks = useMemo(processLinks, [allLinks, domainView, change])
+  const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
+    
+    setDomainView(event.currentTarget.checked)
+    setChange(prevState => !prevState)
+  }
+  function processNodes() : NodesDomainMapping {
+    if (allCrawls.length === 0) return {processedNodes: [], webToDomain: {}}
+    const activeRecordExecs = getExecutionIds(activeRecordIds)
+    const activeCrawls = filterCrawlsByExecutionIds(allCrawls, activeRecordExecs)
     if (!domainView){
+
       return {
-        processedNodes: crawls.map(crawl => ({
+        processedNodes: activeCrawls.map(crawl => ({
           id: crawl.id,
-          label: crawl.title.substring(0, 20),
+          label: crawl.state != crawl.title ? crawl.title.substring(0, 20) : crawl.url.substring(0, 20),
           url: crawl.url,
           executionId: crawl.executionId,
           color: 'darkgreen',
@@ -64,7 +80,7 @@ export default function App() {
 
     let webToDomain:{[key: number]: string} = {}
 
-    crawls.forEach(crawl => {
+    activeCrawls.forEach(crawl => {
       const match = crawl.url.match(domainRegex)
       if (!match) return // not a valid url
       const domain = match[1]
@@ -86,39 +102,46 @@ export default function App() {
       webToDomain[crawl.id as number] = domain
     })
     return {processedNodes: domainNodes, webToDomain: webToDomain}
-
-  }, [crawls, domainView, change])
-
-const processedLinks = useMemo(() => {
-  if (!domainView) return links.filter(link => link.source && link.target)
-
-  return links
-    .filter(link => webToDomain[link.source as number] && webToDomain[link.target as number]) // filter the loaded nodes
-    .map<LinkObject>(link => ({
-      source: webToDomain[link.source as number],
-      target: webToDomain[link.target as number]
-    }))
-}, [links, domainView, webToDomain])
-  const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
-    
-    setDomainView(event.currentTarget.checked)
-    setChange(prevState => !prevState)
   }
-  console.log("graph data", {nodes: processedNodes, links: processedLinks})
+  function processLinks() : LinkObject[] {
+    const activeRecordExecs = getExecutionIds(activeRecordIds)
+
+    if (!domainView){ 
+      const filteredLinks = filterLinksByExecutionIds(allLinks, activeRecordExecs)
+      return filteredLinks.filter(link => link.source && link.target)
+    }
+
+    const loadedLinks = allLinks
+      .filter(link => webToDomain[link.source as number] && webToDomain[link.target as number]) // filter the loaded nodes)
+    return  filterLinksByExecutionIds(loadedLinks, activeRecordExecs)
+      .map<LinkObject>(link => ({
+        source: webToDomain[link.source as number],
+        target: webToDomain[link.target as number]
+      }))
+    // return loadedLinks
+  }
+  function filterCrawlsByExecutionIds(crawls: CrawledWeb[], execution_ids: number[]) : NodeObject[] {
+    return crawls.filter(crawl => execution_ids.includes(crawl.executionId))
+  }
+  function filterLinksByExecutionIds(links: LinkObject[], execution_ids: number[]) : LinkObject[] {
+    return links.filter(link => execution_ids.includes(allCrawls.find(crawl => crawl.id === link.source)?.executionId as number))
+  }
+  function getExecutionIds(record_ids: number[]) : number[] {
+    const activeRecords : Record[] = records.filter(record => record_ids.includes(record.id))
+    return activeRecords.map(record => record.crawledData.executionId)
+  }
   return(
     <>
       <CreateRecordDialog setChange={setChange}/>
-      <Records records={records} tags={tags} setEditingRecord={setEditingRecord} setChange={setChange}/>
+      <Records records={records} activeRecordIds={activeRecordIds} setActiveRecordIds={setActiveRecordIds} tags={tags} setEditingRecord={setEditingRecord} setChange={setChange}/>
       {editingRecord && <><EditRecordDialog editingRecord={editingRecord} setChange={setChange}/> <button onClick={() => setEditingRecord(null)}>Close</button></>}
       
       <hr />
-      <span>View: </span>
-      <label htmlFor="domain-radio">domain
-        
-        <input type="checkbox" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-radio'/>
+      <label htmlFor="domain-checkbox">Domain view
+        <input type="checkbox" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-checkbox'/>
       </label>
       <div id='graph'>
-        {selectedNode && <><CrawledDetail node={selectedNode} setNode={setSelectedNode}/> </>}
+        {selectedNode && <CrawledDetail node={selectedNode} setNode={setSelectedNode}/> }
         <ForceGraph2D
 
           graphData={{nodes: processedNodes, links: processedLinks}}

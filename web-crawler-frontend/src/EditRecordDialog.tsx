@@ -12,8 +12,8 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
         event.preventDefault()
         const formData = new FormData((document.getElementById('edit-form') as HTMLFormElement))
 
-        formData.append('tags', JSON.stringify(tags))
-        formData.append('active', 'true')
+        formData.set('tags', JSON.stringify(tags))
+        formData.set('active', 'true')
 
         try {
             const response = await fetch("/api/websites/" + editingRecord.id, {

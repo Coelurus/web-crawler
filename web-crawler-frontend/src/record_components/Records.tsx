@@ -8,12 +8,14 @@ import Record from './Record'
 
 type RecordsProps = {
   records:Record[], 
+  activeRecordIds: Array<number>,
+  setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
   tags:string[], 
   setEditingRecord:Dispatch<SetStateAction<Record|null>>, 
   setChange:Dispatch<SetStateAction<boolean>>
 }
 
-export default function Records({records, tags, setEditingRecord, setChange}: RecordsProps)
+export default function Records({records, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, setChange}: RecordsProps)
     {
 
     const [url, setUrl] = useState('')
@@ -27,7 +29,7 @@ export default function Records({records, tags, setEditingRecord, setChange}: Re
     const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
       setUrl(e.target.value)
     }
-    const handleLableChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleLabelChange = (e: ChangeEvent<HTMLInputElement>) => {
       setLabel(e.target.value)
     }
     const handleTagsChange = (newTags: Array<string>) => {
@@ -49,12 +51,14 @@ export default function Records({records, tags, setEditingRecord, setChange}: Re
           tags={tags}
           selectedTags={selectedTags}
           onUrlChange={handleUrlChange} 
-          onLabelChange={handleLableChange} 
+          onLabelChange={handleLabelChange} 
           onSelectedTagsChange={handleTagsChange}
           onSortByUrlChange={handleSortChange}
         />
         <RecordsTable 
           records={records} 
+          activeRecordIds={activeRecordIds}
+          setActiveRecordIds={setActiveRecordIds}
           itemsPerPage={3}
           sortByUrl={sortByUrl} 
           searchLabel={label} 
