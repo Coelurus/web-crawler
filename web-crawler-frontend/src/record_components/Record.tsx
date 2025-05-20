@@ -3,16 +3,16 @@ import PeriodicityTime from "./PeriodicityTime";
 import Tag from "./Tag";
 
 export default class Record{
-    public id:number;
-    public label: string;
-    public url: string;
-    public boundaryRegExp: string;
-    public periodicity: PeriodicityTime;
-    public active:boolean
-    public tags:Array<Tag>
-    public crawledData:CrawledWeb
-    public lastExecution:Date|undefined
-    public timeOfExecution:string|undefined
+    id:number;
+    label: string;
+    url: string;
+    boundaryRegExp: string;
+    periodicity: PeriodicityTime;
+    active:boolean
+    tags:Array<Tag>
+    crawledData:CrawledWeb
+    lastExecution:Date|undefined
+    timeOfExecution:string|undefined
     
 
     public constructor(id:number, label:string, url:string, boundaryRegEx:string, periodicity:PeriodicityTime, active:boolean, tags:Array<Tag>, crawledData:CrawledWeb){

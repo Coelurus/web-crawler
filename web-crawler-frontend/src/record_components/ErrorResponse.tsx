@@ -1,7 +1,7 @@
 
 class ErrorDetail{
-    public code:string
-    public scope:string
+    code:string
+    scope:string
 
     public constructor(code:string, scope:string){
         this.code = code

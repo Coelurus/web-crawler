@@ -1,8 +1,8 @@
 export default class PeriodicityTime{
-    public id:number
-    public minute:number
-    public hour:number
-    public day:number
+    id:number
+    minute:number
+    hour:number
+    day:number
     
     public constructor(id:number, minute:number, hour:number, day:number){
         this.id = id
