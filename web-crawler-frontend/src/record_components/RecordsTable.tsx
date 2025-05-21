@@ -112,7 +112,9 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
             </table>
 
             <div>
-                <span id='curr-page'>{currentPage}/{calcPageCount(itemsPerPage, searchRecords.length)}</span><br/>
+                {calcPageCount(itemsPerPage, searchRecords.length) !== 0 && <span id='curr-page'>Page {currentPage} out of {calcPageCount(itemsPerPage, searchRecords.length)}</span>}
+                {calcPageCount(itemsPerPage, searchRecords.length) === 0 && <span>No records created</span>}
+                <br/>
                 {currentPage !== 1 &&
                     <button id="prev-btn" onClick={() => 
                         {//TODO: změna search nezmění current page => prázdná stránka
