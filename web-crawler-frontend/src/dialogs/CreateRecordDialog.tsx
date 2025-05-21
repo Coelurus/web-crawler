@@ -1,5 +1,5 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react"
-import './css/CreateDialog.css'
+import '../css/CreateDialog.css'
 
 type CreateRecordDialogProps = {setActiveRecordIds: Dispatch<SetStateAction<number[]>>, setChange:Dispatch<SetStateAction<boolean>>}
 export default function CreateRecordDialog({setActiveRecordIds, setChange}:CreateRecordDialogProps){
