@@ -1,4 +1,5 @@
 import CrawledWeb from "../Graph/CrawledWeb";
+import Execution from "./Execution";
 import PeriodicityTime from "./PeriodicityTime";
 import Tag from "./Tag";
 
@@ -11,7 +12,7 @@ export default class Record{
     active:boolean
     tags:Array<Tag>
     crawledData:CrawledWeb
-    lastExecution:Date|undefined
+    lastExecution:Execution|undefined
     timeOfExecution:string|undefined
     
 

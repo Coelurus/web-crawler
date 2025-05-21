@@ -12,29 +12,7 @@ export async function fetchRecords(): Promise<Record[]> {
             const response = await fetch("/api/executions/" + record.crawledData.executionId)
             const execution: Execution = await response.json()
 
-            record.lastExecution = execution.startTime
-
-            const timeOfExecMilliseconds: number =
-                new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
-
-            switch (execution.status.toLocaleLowerCase()) {
-                case 'failed':
-                    record.timeOfExecution = 'FAILED'
-                    break;
-                case 'pending':
-                    record.timeOfExecution = 'PENDING'
-                    break;
-                case 'in_progress':
-                    record.timeOfExecution = 'IN PROGRESS'
-                    break;
-                case 'finished':
-                    const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
-                    const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
-                    record.timeOfExecution = `${minutes}m ${seconds}s`
-                    break;
-                default:
-                    break;
-            }
+            record.lastExecution = execution
         }
     }))
     return records
@@ -42,21 +20,14 @@ export async function fetchRecords(): Promise<Record[]> {
 export async function fetchTags(): Promise<string[]> {
     const response = await fetch("/api/tags")
 
-    return response.json()
+    return await response.json()
 }
 
-class LinkResponse {
-    public id: number
-    public from: number
-    public to: number
-    public executionId: number
-
-    public constructor(id: number, from_id: number, to_id: number, execution_id: number) {
-        this.id = id
-        this.from = from_id
-        this.to = to_id
-        this.executionId = execution_id
-    }
+type LinkResponse = {
+    id: number,
+    from: number,
+    to: number,
+    executionId: number
 }
 
 export async function fetchLinks(execution_id: number|undefined = undefined): Promise<LinkObject[]> {
@@ -85,5 +56,4 @@ export async function deleteRecord(id: number) {
     if (!response.ok) {
         throw new Error('Error occurred when deleting record')
     }
-    return response.json()
 }

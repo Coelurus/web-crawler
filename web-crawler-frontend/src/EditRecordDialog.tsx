@@ -40,9 +40,10 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
         setTag(e.target.value)
     }
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
-        const tagEl = event.currentTarget.parentNode!
+        const tagEl = event.currentTarget.parentNode!.firstChild!
         const tagText = tagEl.textContent
-        setTags(tags.filter(tag => tag+'X' !== tagText!.slice(0,tagEl.textContent!.length-1)))
+        console.log(tagText)
+        setTags(tags.filter(tag => tag !== tagText!))
         tagEl.parentNode!.removeChild(tagEl)
         
     }

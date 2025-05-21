@@ -1,14 +1,11 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react"
-import Record from "./record_components/Record"
 import './css/CreateDialog.css'
-import Execution from "./record_components/Execution"
-// import Execution from "./record_components/Execution"
 
 
 export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetStateAction<boolean>>}){
     const [day, setDay] = useState(0)
     const [hour, setHour] = useState(0)
-    const [minute, setMinute] = useState(10)
+    const [minute, setMinute] = useState(0)
     const [currentTag, setCurrentTag] = useState('')
     const [tags, setTags] = useState<string[]>([])
 
@@ -54,10 +51,11 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
         formData.append('active', 'true')
 
         try{
-            const response = await fetch("./api/websites",{
+            await fetch("./api/websites",{
                 method: 'POST',
                 body: formData
             })
+
             setChange(prevState => !prevState)
             
         } catch (error){

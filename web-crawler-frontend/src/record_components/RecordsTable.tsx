@@ -37,7 +37,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
             
             if (a.lastExecution !== undefined && b.lastExecution !== undefined){
 
-                return a.lastExecution.getTime() - b.lastExecution.getTime()
+                return a.lastExecution.startTime.getTime() - b.lastExecution.startTime.getTime()
             }
             else{
                 return Number.MIN_SAFE_INTEGER
@@ -60,8 +60,20 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         setChange(prevState => !prevState)
     }
 
+    async function deleteRecordFromTable(record_id: number){
+        await deleteRecord(record_id)
+        setChange(prevState => !prevState)
+    } 
+
     function isActive(record_id: number){
         return activeRecordIds.includes(record_id)
+    }
+
+    function getTime(startTime: Date, endTime: Date) : string {
+        const timeOfExecMilliseconds: number = endTime.getTime() - startTime.getTime()
+        const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
+        const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
+        return `${minutes}m ${seconds}s`
     }
 
     return(
@@ -72,9 +84,9 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                         <th>Label</th>
                         <th>Tags</th>
                         <th>Periodicity</th>
-                        <th>Time of execution</th>
+                        <th>Execution time</th>
                         <th>Last execution</th>
-                        {/* <th>Status of last execution</th> */}
+                        <th>Last execution</th>
                         <th>View in graph</th>
                         <th></th>
                         <th></th>
@@ -88,12 +100,12 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                                 <span key={tag.id} className='tag'>{tag.name}</span>
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
-                            <td>{record.timeOfExecution && record.timeOfExecution}</td>
-                            <td>{record.lastExecution && new Date(record.lastExecution).toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
-                            {/* <td>{record.}</td> */}
+                            <td>{record.lastExecution && record.lastExecution.endTime && getTime(new Date(record.lastExecution.startTime), new Date(record.lastExecution.endTime))}</td>
+                            <td>{record.lastExecution && new Date(record.lastExecution.startTime).toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
+                            <td>{record.lastExecution && record.lastExecution.status}</td>
                             <td><input type="checkbox" name="" id={'checkbox-' + record.id} checked={isActive(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>
                             <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
-                            <td><button onClick={() => {deleteRecord(record.id); setChange(prevState => !prevState)}}>Delete</button></td>
+                            <td><button onClick={() => deleteRecordFromTable(record.id)}>Delete</button></td>
                         </tr>
                     ))}
                 </tbody>
