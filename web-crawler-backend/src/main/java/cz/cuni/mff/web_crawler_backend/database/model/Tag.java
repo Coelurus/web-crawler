@@ -16,14 +16,14 @@ public class Tag {
     private String name;
 
     @Column(name = "wr_id")
-    private Long wr_id;
+    private Long wrId;
 
     public Tag() {
     }
 
-    public Tag(String name, Long wr_id) {
+    public Tag(String name, Long wrId) {
         this.name = name;
-        this.wr_id = wr_id;
+        this.wrId = wrId;
     }
 
     @Override

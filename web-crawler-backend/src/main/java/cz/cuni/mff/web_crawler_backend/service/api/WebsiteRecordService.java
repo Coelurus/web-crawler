@@ -145,9 +145,20 @@ public class WebsiteRecordService {
             wr.setPeriodicity(new PeriodicityTime(periodicity));
         }
 
+        List<String> tagsNames = List.of();
         if (tags != null) {
-            for (Object tag : new JSONArray(tags)) {
-                tagRepository.save(new Tag((String) tag, wr.getId()));
+            tagsNames = new JSONArray(tags).toList().stream().map(Object::toString).toList();
+            for (String tag : tagsNames) {
+                if (tagRepository.findByNameAndWrId(tag, wr.getId()).isPresent()) {
+                    continue;
+                }
+                tagRepository.save(new Tag(tag, wr.getId()));
+            }
+        }
+
+        for (Tag savedTag : tagRepository.findByWrId(wr.getId())) {
+            if (!tagsNames.contains(savedTag.getName())) {
+                tagRepository.delete(savedTag);
             }
         }
 
