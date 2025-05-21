@@ -131,9 +131,9 @@ export default function App() {
   }
   return(
     <>
-      <CreateRecordDialog setChange={setChange}/>
+      <CreateRecordDialog setActiveRecordIds={setActiveRecordIds} setChange={setChange} />
       <Records records={records} activeRecordIds={activeRecordIds} setActiveRecordIds={setActiveRecordIds} tags={tags} setEditingRecord={setEditingRecord} setChange={setChange}/>
-      {editingRecord && <><EditRecordDialog editingRecord={editingRecord} setChange={setChange}/> <button onClick={() => setEditingRecord(null)}>Close</button></>}
+      {editingRecord && <><EditRecordDialog editingRecord={editingRecord} hideDialog={() => setEditingRecord(null)} setChange={setChange}/> </>}
       
       <hr />
       <label htmlFor="domain-checkbox">Domain view
