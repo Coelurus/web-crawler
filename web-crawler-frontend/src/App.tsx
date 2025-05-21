@@ -1,15 +1,17 @@
 
 import { ChangeEvent, useEffect, useMemo, useState, useRef } from 'react'
 import './css/App.css'
-import Records from "./record_components/Records"
-import Record from './record_components/Record'
+import Records from "./data-classes/Records"
+import Record from './data-classes/Record'
 import ForceGraph2D, { LinkObject, NodeObject, ForceGraphMethods  } from 'react-force-graph-2d'
 
 import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
-import CreateRecordDialog from './CreateRecordDialog'
-import EditRecordDialog from './EditRecordDialog'
-import CrawledDetail from './Graph/CrawledDetail'
-import CrawledWeb from './Graph/CrawledWeb'
+import CreateRecordDialog from './dialogs/CreateRecordDialog'
+import EditRecordDialog from './dialogs/EditRecordDialog'
+import CrawledDetail from './graph/CrawledDetail'
+import CrawledWeb from './graph/CrawledWeb'
+import Graph from './graph/Graph'
+
 
 
 export default function App() {
@@ -129,6 +131,8 @@ export default function App() {
     const activeRecords : Record[] = records.filter(record => record_ids.includes(record.id))
     return activeRecords.map(record => record.crawledData?.executionId)
   }
+
+
   return(
     <>
       <CreateRecordDialog setActiveRecordIds={setActiveRecordIds} setChange={setChange} />
@@ -141,54 +145,10 @@ export default function App() {
       </label>
       <div id='graph'>
         {selectedNode && <CrawledDetail node={selectedNode} setNode={setSelectedNode}/> }
-        {createGraph()}
+        <Graph nodes={processedNodes} links={processedLinks} setSelectedNode={setSelectedNode} />
       </div>
       <hr />
       </>
   )
 
-  function createGraph() {
-    return <ForceGraph2D
-
-      graphData={{ nodes: processedNodes, links: processedLinks }}
-      width={750}
-      backgroundColor='lightblue'
-      nodeAutoColorBy={(node) => node.state}
-      nodeLabel={(node) => node.url}
-
-      nodeCanvasObject={(node, ctx, globalScale) => {
-        const label: string = node.label
-        const fontSize = 12 / globalScale
-        ctx.font = `${fontSize}px Sans-Serif`
-        const textWidth = ctx.measureText(label).width
-        const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2)
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
-        ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1])
-
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        if (node.state === 'SEARCHED') {
-          ctx.fillStyle = node.color
-        }
-        else {
-          ctx.fillStyle = 'darkred'
-        }
-        ctx.fillText(label, node.x!, node.y!)
-
-        node.__bckgDimensions = bckgDimensions
-      } }
-      nodePointerAreaPaint={(node, color, ctx) => {
-
-        ctx.fillStyle = color
-        const bckgDimensions = node.__bckgDimensions
-        bckgDimensions && ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1])
-      } }
-      onNodeClick={(node, event) => {
-        setSelectedNode(node)
-      } }
-      linkDirectionalArrowRelPos={1}
-      linkDirectionalArrowLength={5}
-      linkWidth={3} />
-  }
 }
