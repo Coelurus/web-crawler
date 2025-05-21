@@ -1,7 +1,7 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react";
 import Record from "./record_components/Record";
 
-export default function EditRecordDialog({ editingRecord, setChange }: { editingRecord: Record, setChange: Dispatch<SetStateAction<boolean>> }) {
+export default function EditRecordDialog({ editingRecord, hideDialog, setChange }: { editingRecord: Record, hideDialog: () => void, setChange: Dispatch<SetStateAction<boolean>> }) {
     const [day, setDay] = useState(editingRecord.periodicity.day)
     const [hour, setHour] = useState(editingRecord.periodicity.hour)
     const [minute, setMinute] = useState(editingRecord.periodicity.minute)
@@ -21,7 +21,7 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
                 body: formData
             })
             setChange(prevState => !prevState)
-            const record: Record = await response.json()
+            hideDialog()
         } catch (error) {
             console.error('Error:', error)
         }
@@ -42,7 +42,6 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
         const tagEl = event.currentTarget.parentNode!.firstChild!
         const tagText = tagEl.textContent
-        console.log(tagText)
         setTags(tags.filter(tag => tag !== tagText!))
         tagEl.parentNode!.removeChild(tagEl)
         
@@ -92,6 +91,7 @@ export default function EditRecordDialog({ editingRecord, setChange }: { editing
                 </ul>
                 <br />
                 <button type="submit" value="Submit" >Submit</button>
+                <button type="button" onClick={()=>hideDialog()}>Close</button>
             </form>
         </>
     )

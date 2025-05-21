@@ -1,8 +1,8 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react"
 import './css/CreateDialog.css'
 
-
-export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetStateAction<boolean>>}){
+type CreateRecordDialogProps = {setActiveRecordIds: Dispatch<SetStateAction<number[]>>, setChange:Dispatch<SetStateAction<boolean>>}
+export default function CreateRecordDialog({setActiveRecordIds, setChange}:CreateRecordDialogProps){
     const [day, setDay] = useState(0)
     const [hour, setHour] = useState(0)
     const [minute, setMinute] = useState(0)
@@ -32,31 +32,46 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
         setTags([...tags, currentTag])
         setCurrentTag('')
     }
-    const toggleCreateDialog = (event: React.MouseEvent<HTMLButtonElement>) => {
-        
-        const dialog:HTMLElement = document.getElementById('create-dialog') as HTMLElement
+    const toggleCreateDialog = () => {
+        const dialog = document.getElementById('create-dialog') as HTMLElement
+        const button = document.getElementById('toggle-create-dialog') as HTMLButtonElement
         dialog.hidden = !dialog.hidden
-        if (dialog.hidden){
-            event.currentTarget.textContent = 'Show Create Record Dialog'
-        }
-        else{
-            event.currentTarget.textContent = 'Hide Crate Record Dialog'
+        if (dialog.hidden) {
+            button.textContent = 'Show Create Record Dialog'
+        } else {
+            button.textContent = 'Hide Create Record Dialog'
         }
     }
     async function handleSubmit(event: FormEvent) {
         event.preventDefault()
-        const formData = new FormData((document.getElementById('createForm') as HTMLFormElement))
+        const form = document.getElementById('createForm') as HTMLFormElement
+        const formData = new FormData(form)
 
-        formData.append('tags', JSON.stringify( tags ))
-        formData.append('active', 'true')
-
+        formData.set('tags', JSON.stringify( tags ))
+        formData.set('active', 'true')
+        for (const [key, value] of formData.entries()) {
+           console.log(key, value)
+        }
         try{
-            await fetch("./api/websites",{
+            const response = await fetch("./api/websites",{
                 method: 'POST',
                 body: formData
             })
+            if (!response.ok){
+                throw new Error('Server error')
+            }
+            const addedRecord = await response.json()
 
             setChange(prevState => !prevState)
+            setActiveRecordIds(prev => [...prev, addedRecord.id])
+
+            setDay(0)
+            setHour(0)
+            setMinute(0)
+            setCurrentTag('')
+            setTags([])
+            form.reset()
+            toggleCreateDialog()
             
         } catch (error){
             console.error('Error:', error)
@@ -64,7 +79,7 @@ export default function CreateRecordDialog({setChange}:{setChange:Dispatch<SetSt
     }
     return(
         <>
-            <button onClick={toggleCreateDialog}>Show Create Record Dialog</button>
+            <button onClick={toggleCreateDialog} id="toggle-create-dialog">Show Create Record Dialog</button>
             <div id="create-dialog" hidden>
                 <h2>Create Record</h2>
                 <form id="createForm" className="dialog" onSubmit={handleSubmit}>
