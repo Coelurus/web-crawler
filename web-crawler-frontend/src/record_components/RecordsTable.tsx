@@ -1,6 +1,6 @@
 import Record from './Record'
 import '../css/table.css'
-import { Dispatch, SetStateAction, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { deleteRecord } from '../data-service'
 
 type RecordsTableProps = {
@@ -19,6 +19,7 @@ type RecordsTableProps = {
 export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, sortByUrl, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
     const [currentPage, setCurrentPage] = useState(1)
 
+    
     const searchRecords = records.filter(record => 
         record.label.includes(searchLabel) && 
         record.url.includes(searchUrl) && 
@@ -27,6 +28,13 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         }) || searchTags.length === 0)
     )
     const currentItems = searchRecords.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
+    const totalPages = calcPageCount(itemsPerPage, searchRecords.length)
+
+    useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+    }, [currentPage, totalPages]);
 
     // sort by url
     if (sortByUrl){
@@ -86,7 +94,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                         <th>Periodicity</th>
                         <th>Execution time</th>
                         <th>Last execution</th>
-                        <th>Last execution</th>
+                        <th>Status</th>
                         <th>View in graph</th>
                         <th></th>
                         <th></th>
@@ -112,23 +120,23 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
             </table>
 
             <div>
-                {calcPageCount(itemsPerPage, searchRecords.length) !== 0 && <span id='curr-page'>Page {currentPage} out of {calcPageCount(itemsPerPage, searchRecords.length)}</span>}
-                {calcPageCount(itemsPerPage, searchRecords.length) === 0 && <span>No records created</span>}
+                {totalPages !== 0 && <span id='curr-page'>Page {currentPage} out of {totalPages}</span>}
+                {totalPages === 0 && <span>No records found</span>}
                 <br/>
                 {currentPage !== 1 &&
                     <button id="prev-btn" onClick={() => 
                         {//TODO: změna search nezmění current page => prázdná stránka
-                            if (currentPage > calcPageCount(itemsPerPage, searchRecords.length))
+                            if (currentPage > totalPages)
                                 {setCurrentPage(1)}
                             else
                                 {setCurrentPage(currentPage-1)}
                             
                         }}>Previous</button>
                 }
-                {currentPage < calcPageCount(itemsPerPage, searchRecords.length) &&
+                {currentPage < totalPages &&
                     <button id="next-btn" onClick={() => 
                         {
-                        if (currentPage > calcPageCount(itemsPerPage, searchRecords.length))
+                        if (currentPage > totalPages)
                             {setCurrentPage(1)}
                         else
                             {setCurrentPage(currentPage+1)}
