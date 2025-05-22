@@ -28,4 +28,6 @@ public interface CrawlResultRepository extends JpaRepository<CrawlResult, Long> 
 
     List<CrawlResult> findAllByExecutionIdIn(List<Long> executionIds);
 
+    List<CrawlResult> findCrawlResultsByUrl(String url);
+
 }
