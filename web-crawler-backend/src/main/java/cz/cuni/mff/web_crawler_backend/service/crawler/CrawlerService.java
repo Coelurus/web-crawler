@@ -10,7 +10,6 @@ import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
 import cz.cuni.mff.web_crawler_backend.service.api.CrawlService;
-import cz.cuni.mff.web_crawler_backend.service.api.WebsiteRecordService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,9 +23,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class CrawlerService {
@@ -36,6 +37,8 @@ public class CrawlerService {
     private final ExecutionRepository executionRepository;
     private final WebsiteRecordRepository websiteRecordRepository;
     private final CrawlService crawlService;
+    private final ExecutorService executorService;
+    private final int MAX_CONCURRENT_REQUESTS = 16;
 
     @Autowired
     public CrawlerService(CrawlResultRepository crawlResultRepository,
@@ -48,6 +51,7 @@ public class CrawlerService {
         this.executionRepository = executionRepository;
         this.websiteRecordRepository = websiteRecordRepository;
         this.crawlService = crawlService;
+        this.executorService = Executors.newFixedThreadPool(MAX_CONCURRENT_REQUESTS);
     }
 
     /**
@@ -98,48 +102,73 @@ public class CrawlerService {
      * @param execution Execution object that has invoked this crawling
      */
     private void goThroughCrawlQueue(List<CrawlResult> queue, String regexp, Execution execution) {
-        while (!queue.isEmpty()) {
-            CrawlResult crawlResult = queue.removeFirst();
+        Pattern pattern = Pattern.compile(regexp);
+        ConcurrentLinkedQueue<CrawlResult> concurrentQueue = new ConcurrentLinkedQueue<>(queue);
+        AtomicInteger activeTasks = new AtomicInteger(concurrentQueue.size());
+        List<Future<?>> futures = new ArrayList<>();
 
-            Pattern pattern = Pattern.compile(regexp);
-
-            LocalDateTime startTime = LocalDateTime.now();
-            crawlResult.setExecutionId(execution.getId());
-
-            try {
-                readDataFromPage(queue, execution, crawlResult, pattern);
-                executionRepository.updateCrawledCount(execution.getId());
-            } catch (IOException | IllegalArgumentException e) {
-                crawlResult.setTitle("INACCESSIBLE");
-                crawlResult.setState("INACCESSIBLE");
+        while (!concurrentQueue.isEmpty() || activeTasks.get() > 0) {
+            CrawlResult crawlResult = concurrentQueue.poll();
+            if (crawlResult == null) {
+                if (activeTasks.get() > 0) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Crawling interrupted", e);
+                    }
+                    continue;
+                }
+                break;
             }
 
+            Future<?> future = executorService.submit(() -> {
+                try {
+                    processCrawlResult(crawlResult, pattern, execution, concurrentQueue, activeTasks);
+                } finally {
+                    activeTasks.decrementAndGet();
+                }
+            });
+            futures.add(future);
+        }
 
-            LocalDateTime endTime = LocalDateTime.now();
-            Long duration = ChronoUnit.MILLIS.between(startTime, endTime);
-            //Duration into hh:mm:ss.mmm
-            String durationString = String.format("%02d:%02d:%02d.%03d",
-                    duration / 3_600_000,
-                    (duration % 3_600_000) / 60_000,
-                    (duration % 60_000) / 1_000,
-                    duration % 1_000);
-
-            crawlResult.setCrawlTime(durationString);
-
-            crawlResultRepository.save(crawlResult);
+        try {
+            for (Future<?> future : futures) {
+                future.get();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Crawling interrupted", e);
         }
     }
 
-    /**
-     * Load web page, parse it and collect important data
-     *
-     * @param queue       Queue of pages that have to be crawled
-     * @param execution   Execution object that has invoked this crawling
-     * @param crawlResult Information about progress of crawling this page
-     * @param pattern     Pattern by which page links are matched
-     * @throws IOException When page cannot be accessed
-     */
-    private void readDataFromPage(List<CrawlResult> queue, Execution execution, CrawlResult crawlResult, Pattern pattern) throws IOException {
+    private void processCrawlResult(CrawlResult crawlResult, Pattern pattern, Execution execution,
+                                    ConcurrentLinkedQueue<CrawlResult> queue, AtomicInteger activeTasks) {
+        LocalDateTime startTime = LocalDateTime.now();
+        crawlResult.setExecutionId(execution.getId());
+
+        try {
+            readDataFromPage(queue, execution, crawlResult, pattern, activeTasks);
+            executionRepository.updateCrawledCount(execution.getId());
+        } catch (IOException | IllegalArgumentException e) {
+            crawlResult.setTitle("INACCESSIBLE");
+            crawlResult.setState("INACCESSIBLE");
+        }
+
+        LocalDateTime endTime = LocalDateTime.now();
+        Long duration = ChronoUnit.MILLIS.between(startTime, endTime);
+        String durationString = String.format("%02d:%02d:%02d.%03d",
+                duration / 3_600_000,
+                (duration % 3_600_000) / 60_000,
+                (duration % 60_000) / 1_000,
+                duration % 1_000);
+
+        crawlResult.setCrawlTime(durationString);
+        crawlResultRepository.save(crawlResult);
+    }
+
+    private void readDataFromPage(ConcurrentLinkedQueue<CrawlResult> queue, Execution execution,
+                                  CrawlResult crawlResult, Pattern pattern, AtomicInteger activeTasks) throws IOException {
         Document doc = Jsoup.connect(crawlResult.getUrl()).get();
         String title = doc.title();
 
@@ -150,28 +179,16 @@ public class CrawlerService {
         } else {
             crawlResult.setTitle(doc.title());
         }
-        doc.select("a").forEach(resolveLink(queue, execution.getId(), pattern, crawlResult));
+        doc.select("a").forEach(resolveLink(queue, execution.getId(), pattern, crawlResult, activeTasks));
         crawlResult.setSearched();
     }
 
-    /**
-     * Take care of link from anchor tag found at current page
-     *
-     * @param queue       Queue of all pages that have to be crawled
-     * @param executionId ID of execution under which this crawling is happening
-     * @param pattern     Regexp pattern used to match link
-     * @param crawlResult Object for saving data about crawl at current page
-     * @return Consumer function for resolving links
-     */
-    private Consumer<Element> resolveLink(List<CrawlResult> queue, Long executionId,
-                                          Pattern pattern, CrawlResult crawlResult) {
+    private Consumer<Element> resolveLink(ConcurrentLinkedQueue<CrawlResult> queue, Long executionId,
+                                          Pattern pattern, CrawlResult crawlResult, AtomicInteger activeTasks) {
         return a -> {
             String href = a.attr("abs:href");
-            // Skip anchors to another part of same page
             if (!href.startsWith("#")) {
-
                 href = stripHref(href);
-
                 Matcher matcher = pattern.matcher(href);
 
                 if (href.length() > 255) {
@@ -183,8 +200,7 @@ public class CrawlerService {
                 }
 
                 if (!crawlResultRepository.existsByUrlAndExecutionId(href, executionId)) {
-
-                    resolveNewNode(queue, executionId, crawlResult, href, matcher);
+                    resolveNewNode(queue, executionId, crawlResult, href, matcher, activeTasks);
                 } else {
                     resolveExistingNode(executionId, crawlResult, href);
                 }
@@ -216,11 +232,13 @@ public class CrawlerService {
      * @param href        Address of a page found on current page
      * @param matcher     Object processing matching patterns to strings
      */
-    private void resolveNewNode(List<CrawlResult> queue, Long executionId, CrawlResult crawlResult, String href, Matcher matcher) {
+    private void resolveNewNode(ConcurrentLinkedQueue<CrawlResult> queue, Long executionId,
+                                CrawlResult crawlResult, String href, Matcher matcher, AtomicInteger activeTasks) {
         CrawlResult son = new CrawlResult(href, "TO BE MATCHED", executionId);
         if (matcher.find()) {
             son.setState("TO BE SEARCHED");
             queue.add(son);
+            activeTasks.incrementAndGet();
         } else {
             son.setState("NOT MATCHED");
             son.setTitle("NOT MATCHED");
