@@ -89,7 +89,6 @@ export async function editRecord(editedRecord:Record|FormData){
         formData.set('periodicity', periodicity)
         formData.set('tags', JSON.stringify(editedRecord.tags.map(tag => tag.name)))
         formData.set('crawledData', JSON.stringify(editedRecord.crawledData))
-        console.log(editedRecord)
         formData.set('id', editedRecord.id.toString())
         
     }

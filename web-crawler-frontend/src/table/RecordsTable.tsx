@@ -34,7 +34,6 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         setCurrentPage(1);
         }
     }, [currentPage, totalPages]);
-
    
     function calcPageCount(itemsPerPage:number, itemsCount:number): number{
         if (itemsCount%itemsPerPage === 0) return itemsCount/itemsPerPage

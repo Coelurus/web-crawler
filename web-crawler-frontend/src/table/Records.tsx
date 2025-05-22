@@ -1,5 +1,5 @@
 
-import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
+import { ChangeEvent, Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 
 import RecordsHeader from './RecordsHeader'
 import RecordsTable from './RecordsTable'
@@ -8,7 +8,6 @@ import Record from '../data-classes/Record'
 
 type RecordsProps = {
   records:Record[], 
-  setRecords: Dispatch<SetStateAction<Record[]>>,
   activeRecordIds: Array<number>,
   setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
   tags:string[], 
@@ -16,7 +15,7 @@ type RecordsProps = {
   setChange:Dispatch<SetStateAction<boolean>>
 }
 
-export default function Records({records, setRecords, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, setChange}: RecordsProps)
+export default function Records({records, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, setChange}: RecordsProps)
 {
 
   const [url, setUrl] = useState('')
@@ -37,19 +36,20 @@ export default function Records({records, setRecords, activeRecordIds, setActive
     setSelectedTags(newTags)
   }
 
-  const handleSortChange = (value: boolean) =>{
-    
-    setSortByUrl(value)
-    setRecords(prev => [...prev].sort((a:Record, b:Record) => {
-      
-      if (sortByUrl){
-        return a.url.localeCompare(b.url)
+  const sortedRecords = useMemo(() => {
+    return [...records].sort((a, b) => {
+      if (sortByUrl) {
+        return a.url.localeCompare(b.url);
       }
       const timeA = (a.lastExecution?.startTime ?? new Date(0)).getTime();
       const timeB = (b.lastExecution?.startTime ?? new Date(0)).getTime();
-      return timeA - timeB
-    }))
-  }
+      return timeA - timeB;
+    });
+  }, [records, sortByUrl]);
+  
+  const handleSortChange = (value: boolean) => {
+    setSortByUrl(value);
+  };
 
 
   return (
@@ -67,7 +67,7 @@ export default function Records({records, setRecords, activeRecordIds, setActive
         onSortByUrlChange={handleSortChange}
       />
       <RecordsTable 
-        records={records} 
+        records={sortedRecords} 
         activeRecordIds={activeRecordIds}
         setActiveRecordIds={setActiveRecordIds}
         itemsPerPage={3}

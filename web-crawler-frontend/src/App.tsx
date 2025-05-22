@@ -160,7 +160,6 @@ export default function App() {
       />
       <Records 
         records={records} 
-        setRecords={setRecords}
         activeRecordIds={activeRecordIds} 
         setActiveRecordIds={setActiveRecordIds} 
         tags={tags} 
