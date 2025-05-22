@@ -10,7 +10,7 @@ import CreateRecordDialog from './dialogs/CreateRecordDialog'
 import EditRecordDialog from './dialogs/EditRecordDialog'
 import CrawledWeb from './data-classes/CrawledWeb'
 import Graph from './graph/Graph'
-import { ToggleSwitch } from './ToggleSwitch'
+import { ToggleSwitch } from './utils/ToggleSwitch'
 
 
 

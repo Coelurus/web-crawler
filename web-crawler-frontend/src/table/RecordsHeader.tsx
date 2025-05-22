@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { ToggleSwitch } from "../ToggleSwitch";
+import { ToggleSwitch } from "../utils/ToggleSwitch";
 
 
 type RecordsHeaderProps = {
