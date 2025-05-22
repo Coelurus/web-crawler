@@ -1,5 +1,6 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react"
 import '../css/CreateDialog.css'
+import { createRecord } from "../data-service"
 
 type CreateRecordDialogProps = {
     setActiveRecordIds: Dispatch<SetStateAction<number[]>>, 
@@ -55,14 +56,8 @@ export default function CreateRecordDialog({setActiveRecordIds, setLiveMode, set
         formData.set('active', 'true')
 
         try{
-            const response = await fetch("./api/websites",{
-                method: 'POST',
-                body: formData
-            })
-            if (!response.ok){
-                throw new Error('Server error')
-            }
-            const addedRecord = await response.json()
+
+            const addedRecord = await createRecord(formData)
 
             setChange(prevState => !prevState)
             setLiveMode(true)

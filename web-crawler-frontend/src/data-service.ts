@@ -65,6 +65,17 @@ export async function runRecordExecution(recordId: number){
     }
 }
 
+export async function createRecord(formData: FormData) : Promise<Record>{
+    const response = await fetch("./api/websites",{
+        method: 'POST',
+        body: formData
+    })
+    if (!response.ok){
+        throw new Error('Server error')
+    }
+    return await response.json()
+}
+
 export async function editRecord(editedRecord:Record|FormData){
     const formData: FormData = editedRecord instanceof FormData ? editedRecord : new FormData()
     
