@@ -64,14 +64,16 @@ public class ExecutionService {
      */
     public ResponseEntity<Void> startExecution(Long wrId) {
         WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+        deactivateExecution(wrId);
         if (!schedulingConfig.isScheduled(wrId)) {
+            websiteRecordRepository.setActivity(true, wrId);
             schedulingConfig.scheduleCrawlingTask(wr);
         }
         return ResponseEntity.ok().build();
     }
 
     /**
-     * Deactivate periodical executions for a given website record
+     * Deactivate periodical executions for a given website record if it is scheduled
      *
      * @param wrId ID of website record to stop executions on
      * @return ok status
@@ -79,6 +81,7 @@ public class ExecutionService {
      */
     public ResponseEntity<Void> deactivateExecution(Long wrId) {
         schedulingConfig.cancelCrawlingTask(wrId);
+        websiteRecordRepository.setActivity(false, wrId);
         return ResponseEntity.ok().build();
     }
 

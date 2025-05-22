@@ -38,7 +38,11 @@ public class PeriodicityTime {
     }
 
     public PeriodicityTime() {
+    }
 
+    @Override
+    public String toString() {
+        return String.format("%02d:%02d:%02d", day, hour, minute);
     }
 
     /**
