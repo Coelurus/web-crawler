@@ -1,25 +1,29 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react"
 import '../css/CreateDialog.css'
 
-type CreateRecordDialogProps = {setActiveRecordIds: Dispatch<SetStateAction<number[]>>, setChange:Dispatch<SetStateAction<boolean>>}
-export default function CreateRecordDialog({setActiveRecordIds, setChange}:CreateRecordDialogProps){
+type CreateRecordDialogProps = {
+    setActiveRecordIds: Dispatch<SetStateAction<number[]>>, 
+    setLiveMode: Dispatch<SetStateAction<boolean>>,
+    setChange: Dispatch<SetStateAction<boolean>>
+}
+export default function CreateRecordDialog({setActiveRecordIds, setLiveMode, setChange}:CreateRecordDialogProps){
     const [day, setDay] = useState(0)
     const [hour, setHour] = useState(0)
     const [minute, setMinute] = useState(0)
     const [currentTag, setCurrentTag] = useState('')
     const [tags, setTags] = useState<string[]>([])
 
-    const handleDayChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setDay(Number(e.target.value))
+    const handleDayChange = (value: number) => {
+        setDay(Number(value))
     }
-    const handleHourChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setHour(Number(e.target.value))
+    const handleHourChange = (value: number) => {
+        setHour(Number(value))
     }
-    const handleMinuteChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setMinute(Number(e.target.value))
+    const handleMinuteChange = (value: Number) => {
+        setMinute(Number(value))
     }
-    const handleTagChange = (e: ChangeEvent<HTMLInputElement>) => {
-        setCurrentTag(e.target.value)
+    const handleTagChange = (value: string) => {
+        setCurrentTag(value)
     }
     const deleteTag = (event: React.MouseEvent<HTMLButtonElement>) => {
         const tagEl = event.currentTarget.parentNode!.firstChild!
@@ -61,7 +65,9 @@ export default function CreateRecordDialog({setActiveRecordIds, setChange}:Creat
             const addedRecord = await response.json()
 
             setChange(prevState => !prevState)
+            setLiveMode(true)
             setActiveRecordIds(prev => [...prev, addedRecord.id])
+
 
             setDay(0)
             setHour(0)
@@ -92,18 +98,18 @@ export default function CreateRecordDialog({setActiveRecordIds, setChange}:Creat
                     </label>
                     <p>Periodicity:</p>
                     <label htmlFor="postDay">Days:
-                        <input type="number" id="postDay" onChange={handleDayChange} min={0}/>
+                        <input type="number" id="postDay" onChange={() => handleDayChange} min={0}/>
                     </label>
                     <label htmlFor="postHour">Hours:
-                        <input type="number" id="postHour" onChange={handleHourChange} min={0} max={23}/>
+                        <input type="number" id="postHour" onChange={() => handleHourChange} min={0} max={23}/>
                     </label>
                     <label htmlFor="postMinute">Minutes:
-                        <input type="number" id="postMinute" onChange={handleMinuteChange} min={0} max={59}/>
+                        <input type="number" id="postMinute" onChange={() => handleMinuteChange} min={0} max={59}/>
                     </label>
                     <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden readOnly/>
                 
                     <br />
-                    <input type="text" id="tag" value={currentTag} onChange={handleTagChange}/>
+                    <input type="text" id="tag" value={currentTag} onChange={() => handleTagChange}/>
                     <button type="button" id="addTag" onClick={addTag} >Add tag</button>
                     <div>
                         {tags.map(tag => (

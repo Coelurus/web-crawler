@@ -1,5 +1,5 @@
 
-import { ChangeEvent, useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './css/App.css'
 import Records from "./table/Records"
 import Record from './data-classes/Record'
@@ -8,7 +8,6 @@ import { LinkObject, NodeObject  } from 'react-force-graph-2d'
 import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CreateRecordDialog from './dialogs/CreateRecordDialog'
 import EditRecordDialog from './dialogs/EditRecordDialog'
-import CrawledDetail from './graph/CrawledDetail'
 import CrawledWeb from './data-classes/CrawledWeb'
 import Graph from './graph/Graph'
 import { ToggleSwitch } from './ToggleSwitch'
@@ -26,11 +25,12 @@ export default function App() {
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
   const [domainView, setDomainView] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<NodeObject|null>(null)
+  const [liveMode, setLiveMode] = useState<boolean>(false)
 
+  const liveIntervalMs = 5000
 
   useEffect(() => {
     const fetchAll = async () => {
-
       const [recordsData, linksData, tagsData, crawlsData] = await Promise.all([
         fetchRecords(),
         fetchLinks(),
@@ -45,7 +45,18 @@ export default function App() {
     }
 
     fetchAll()
-  }, [change])
+    let interval: number | null = null;
+
+    if (liveMode) {
+      interval = window.setInterval(fetchAll, liveIntervalMs);
+    }
+
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval);
+      }
+    };
+  }, [change, liveMode]);
 
 
   type NodesDomainMapping = {processedNodes: NodeObject[], webToDomain: {[key: number]: string}}
@@ -58,6 +69,9 @@ export default function App() {
   const handleViewChange = (value: boolean) =>{
     setDomainView(value)
     setChange(prevState => !prevState)
+  }
+  const handleLiveModeChange = (value: boolean) =>{
+    setLiveMode(value)
   }
 
   function processNodes() : NodesDomainMapping {
@@ -140,6 +154,7 @@ export default function App() {
     <>
       <CreateRecordDialog 
         setActiveRecordIds={setActiveRecordIds} 
+        setLiveMode={setLiveMode}
         setChange={setChange} 
       />
       <Records 
@@ -159,6 +174,10 @@ export default function App() {
       />}
       
       <hr />
+      <label>
+        Mode:
+        <ToggleSwitch labelOn='Live' labelOff='Static' checked={liveMode} onChange={handleLiveModeChange}/>
+      </label>
       <label>
         View:
         <ToggleSwitch labelOn='Domain' labelOff='Web' checked={domainView} onChange={handleViewChange} />

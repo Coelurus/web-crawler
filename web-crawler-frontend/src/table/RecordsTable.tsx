@@ -8,7 +8,6 @@ type RecordsTableProps = {
     activeRecordIds: Array<number>,
     setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
     itemsPerPage:number, 
-    sortByUrl:boolean, 
     searchLabel:string, 
     searchUrl:string, 
     searchTags:string[], 
@@ -16,7 +15,7 @@ type RecordsTableProps = {
     setChange:Dispatch<SetStateAction<boolean>>
 }
 
-export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, sortByUrl, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
+export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
     const [currentPage, setCurrentPage] = useState(1)
 
     

@@ -71,7 +71,6 @@ export default function Records({records, setRecords, activeRecordIds, setActive
         activeRecordIds={activeRecordIds}
         setActiveRecordIds={setActiveRecordIds}
         itemsPerPage={3}
-        sortByUrl={sortByUrl} 
         searchLabel={label} 
         searchUrl={url}
         searchTags={selectedTags}
