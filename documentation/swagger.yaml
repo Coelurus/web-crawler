@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: API for managing website records and executions in the WebCrawler system.
 
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
 tags:
   - name: website records
     description: Everything about website records
@@ -92,7 +96,7 @@ paths:
       parameters:
         - in: path
           name: id
-          required: true
+          required: true 
           schema:
             type: string
           description: Website record ID.
@@ -126,6 +130,29 @@ paths:
       responses:
         "204":
           description: Website record updated
+
+  /websites/url:
+    get:
+      tags:
+        - website records
+      summary: Get all website records crawling given URL
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          description: URL to search for
+      responses:
+        "200":
+          description: List of website records that crawled the given URL. Empty list if none found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebsiteRecordOut"
+
 
   /executions:
     get:
