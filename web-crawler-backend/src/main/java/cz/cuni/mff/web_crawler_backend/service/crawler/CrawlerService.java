@@ -116,8 +116,15 @@ public class CrawlerService {
 
 
             LocalDateTime endTime = LocalDateTime.now();
-            Long duration = ChronoUnit.MICROS.between(startTime, endTime);
-            crawlResult.setCrawlTime(duration);
+            Long duration = ChronoUnit.MILLIS.between(startTime, endTime);
+            //Duration into hh:mm:ss.mmm
+            String durationString = String.format("%02d:%02d:%02d.%03d",
+                    duration / 3_600_000,
+                    (duration % 3_600_000) / 60_000,
+                    (duration % 60_000) / 1_000,
+                    duration % 1_000);
+
+            crawlResult.setCrawlTime(durationString);
 
             crawlResultRepository.save(crawlResult);
         }

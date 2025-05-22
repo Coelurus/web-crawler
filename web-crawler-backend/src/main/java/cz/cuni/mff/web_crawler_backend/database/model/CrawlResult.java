@@ -21,7 +21,7 @@ public class CrawlResult {
     private String title;
 
     @Column(name = "crawl_time")
-    private Long crawlTime;
+    private String crawlTime;
 
     @Column(name = "execution_id")
     private Long executionId;
@@ -29,7 +29,7 @@ public class CrawlResult {
     @Column(name = "state")
     private String state;
 
-    public CrawlResult(String url, String title, Long crawlTime, Long executionId, String state) {
+    public CrawlResult(String url, String title, String crawlTime, Long executionId, String state) {
         this.url = url;
         this.title = title;
         this.crawlTime = crawlTime;
