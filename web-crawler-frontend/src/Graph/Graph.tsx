@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from 'react'
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import ForceGraph2D, { LinkObject, NodeObject  } from 'react-force-graph-2d'
 import CrawledDetail from './CrawledDetail'
   
@@ -10,7 +10,28 @@ type GraphProps = {
 }
 
 export default function Graph({nodes, links, selectedNode, setSelectedNode}:GraphProps) {
-    return <>        
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+    useEffect(() => {
+        const handleResize = () => {
+        if (containerRef.current) {
+            const { clientWidth, clientHeight } = containerRef.current;
+            setDimensions({
+            width: clientWidth,
+            height: clientHeight,
+            });
+        }
+        };
+
+        handleResize(); // Inicializace
+        window.addEventListener('resize', handleResize); // Dynamická změna velikosti
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+
+    return <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
         <CrawledDetail 
             node={selectedNode} 
             setNode={setSelectedNode}
@@ -18,7 +39,9 @@ export default function Graph({nodes, links, selectedNode, setSelectedNode}:Grap
         
         <ForceGraph2D 
             graphData={{ nodes: nodes, links: links }}
-            width={750}
+            
+            width={dimensions.width}
+            height={dimensions.height}
             backgroundColor='lightblue'
             nodeAutoColorBy={(node) => node.state}
             nodeLabel={(node) => node.url}
@@ -57,5 +80,5 @@ export default function Graph({nodes, links, selectedNode, setSelectedNode}:Grap
             linkDirectionalArrowRelPos={1}
             linkDirectionalArrowLength={5}
             linkWidth={3} />
-        </>
+        </div>   
 }
