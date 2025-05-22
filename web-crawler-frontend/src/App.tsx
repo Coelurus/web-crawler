@@ -84,6 +84,7 @@ export default function App() {
         processedNodes: activeCrawls.map(crawl => ({
           id: crawl.id,
           label: crawl.state != crawl.title ? crawl.title.substring(0, 20) : crawl.url.substring(0, 20),
+          title: crawl.state != crawl.title ? crawl.title : null,
           url: crawl.url,
           executionId: crawl.executionId,
           color: 'darkgreen',
@@ -174,14 +175,11 @@ export default function App() {
       />}
       
       <hr />
-      <label>
-        Mode:
-        <ToggleSwitch labelOn='Live' labelOff='Static' checked={liveMode} onChange={handleLiveModeChange}/>
-      </label>
-      <label>
-        View:
-        <ToggleSwitch labelOn='Domain' labelOff='Web' checked={domainView} onChange={handleViewChange} />
-      </label>
+
+      <ToggleSwitch switchLabel='Mode' labelOn='Live' labelOff='Static' checked={liveMode} onChange={handleLiveModeChange}/>
+    
+      <ToggleSwitch switchLabel='View' labelOn='Domain' labelOff='Web' checked={domainView} onChange={handleViewChange} />
+      
       <div id='graph'>
         <Graph 
           nodes={processedNodes} 

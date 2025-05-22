@@ -41,10 +41,8 @@ export default function RecordsHeader({ url, label, sortByUrl, tags, selectedTag
             </label>
             
         </div>
-        <label>
-            Sort by:
-            <ToggleSwitch labelOff='URL' labelOn="Last Execution" checked={sortByUrl} onChange={onSortByUrlChange}/>
-        </label>
+        <ToggleSwitch switchLabel='Sort By' labelOff='URL' labelOn="Last Execution" checked={sortByUrl} onChange={onSortByUrlChange}/>
+        
         </>
     )
 }

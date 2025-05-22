@@ -1,7 +1,7 @@
 import Record from '../data-classes/Record'
 import '../css/table.css'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
-import { deleteRecord } from '../data-service'
+import { deleteRecord, editRecord } from '../data-service'
 
 type RecordsTableProps = {
     records:Array<Record>, 
@@ -30,9 +30,9 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     const totalPages = calcPageCount(itemsPerPage, searchRecords.length)
 
     useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
+        if (currentPage > totalPages) {
+        setCurrentPage(1);
+        }
     }, [currentPage, totalPages]);
 
    
@@ -68,23 +68,9 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     }
 
     async function toggleActive(record: Record, newValue: boolean){
-        const formData = new FormData()
-        formData.set('active', newValue.toString())
-        formData.set('label', record.label)
-        formData.set('url', record.url)
-        formData.set('boundaryRegExp', record.boundaryRegExp)
-        const periodicity = `${record.periodicity.day}:${record.periodicity.hour}:${record.periodicity.minute}`
-        formData.set('periodicity', periodicity)
-        formData.set('tags', JSON.stringify(record.tags.map(tag => tag.name)))
-        formData.set('crawledData', JSON.stringify(record.crawledData))
-        
-
+        record.active = newValue
         try{
-            await fetch(`/api/websites/${record.id}`, {
-                method: 'PUT',
-                body: formData
-            })
-
+            await editRecord(record)
             setChange(prev => !prev)
         }
         catch (error){
@@ -135,7 +121,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                 <br/>
                 {currentPage !== 1 &&
                     <button id="prev-btn" onClick={() => 
-                        {//TODO: změna search nezmění current page => prázdná stránka
+                        {
                             if (currentPage > totalPages)
                                 {setCurrentPage(1)}
                             else

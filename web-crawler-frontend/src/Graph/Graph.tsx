@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from 'react'
-import ForceGraph2D, { LinkObject, NodeObject, ForceGraphMethods  } from 'react-force-graph-2d'
+import ForceGraph2D, { LinkObject, NodeObject  } from 'react-force-graph-2d'
 import CrawledDetail from './CrawledDetail'
   
 type GraphProps = {
@@ -11,12 +11,11 @@ type GraphProps = {
 
 export default function Graph({nodes, links, selectedNode, setSelectedNode}:GraphProps) {
     return <>        
-        {selectedNode && 
-            <CrawledDetail 
+        <CrawledDetail 
             node={selectedNode} 
             setNode={setSelectedNode}
-            />
-        }
+        />
+        
         <ForceGraph2D 
             graphData={{ nodes: nodes, links: links }}
             width={750}

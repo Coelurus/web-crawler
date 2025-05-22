@@ -49,6 +49,46 @@ export async function fetchCrawls(execution_id: number|undefined = undefined): P
     return result
 }
 
+export async function fetchRecordsForCrawl(url: string){
+    const response = await fetch(`/api/websites/url?query=${url}`)
+    const result = await response.json()
+    return result
+}
+
+export async function runRecordExecution(recordId: number){
+    const response = await fetch(`/api/execute/${recordId}`, {
+        method: 'POST'
+    })
+
+    if (!response.ok){
+        throw new Error('Error occurred while trying to run record ' + recordId)
+    }
+}
+
+export async function editRecord(editedRecord:Record|FormData){
+    const formData: FormData = editedRecord instanceof FormData ? editedRecord : new FormData()
+    
+    // editedRecord is a Record
+    if ('id' in editedRecord){
+        formData.set('active', editedRecord.active.toString())
+        formData.set('label', editedRecord.label)
+        formData.set('url', editedRecord.url)
+        formData.set('boundaryRegExp', editedRecord.boundaryRegExp)
+        const periodicity = `${editedRecord.periodicity.day}:${editedRecord.periodicity.hour}:${editedRecord.periodicity.minute}`
+        formData.set('periodicity', periodicity)
+        formData.set('tags', JSON.stringify(editedRecord.tags.map(tag => tag.name)))
+        formData.set('crawledData', JSON.stringify(editedRecord.crawledData))
+        console.log(editedRecord)
+        formData.set('id', editedRecord.id.toString())
+        
+    }
+    console.log("formdata id", formData.get('id'))
+    await fetch("/api/websites/" + formData.get('id'), {
+        method: 'PUT',
+        body: formData
+    })
+}
+
 export async function deleteRecord(id: number) {
     const response = await fetch("/api/websites/" + id, {
         method: 'DELETE'

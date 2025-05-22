@@ -1,5 +1,6 @@
 import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useState } from "react";
 import Record from "../data-classes/Record";
+import { editRecord } from "../data-service";
 
 export default function EditRecordDialog({ editingRecord, hideDialog, setChange }: { editingRecord: Record, hideDialog: () => void, setChange: Dispatch<SetStateAction<boolean>> }) {
     const [day, setDay] = useState(editingRecord.periodicity.day)
@@ -14,12 +15,10 @@ export default function EditRecordDialog({ editingRecord, hideDialog, setChange 
 
         formData.set('tags', JSON.stringify(tags))
         formData.set('active', 'true')
+        formData.set('id', editingRecord.id.toString())
 
         try {
-            await fetch("/api/websites/" + editingRecord.id, {
-                method: 'PUT',
-                body: formData
-            })
+            await editRecord(formData)
 
             setChange(prevState => !prevState)
             hideDialog()
