@@ -98,18 +98,18 @@ export default function CreateRecordDialog({setActiveRecordIds, setLiveMode, set
                     </label>
                     <p>Periodicity:</p>
                     <label htmlFor="postDay">Days:
-                        <input type="number" id="postDay" onChange={() => handleDayChange} min={0}/>
+                        <input type="number" id="postDay" onChange={(e) => handleDayChange(Number(e.currentTarget.value))} min={0}/>
                     </label>
                     <label htmlFor="postHour">Hours:
-                        <input type="number" id="postHour" onChange={() => handleHourChange} min={0} max={23}/>
+                        <input type="number" id="postHour" onChange={(e) => handleHourChange(Number(e.currentTarget.value))} min={0} max={23}/>
                     </label>
                     <label htmlFor="postMinute">Minutes:
-                        <input type="number" id="postMinute" onChange={() => handleMinuteChange} min={0} max={59}/>
+                        <input type="number" id="postMinute" onChange={(e) => handleMinuteChange(Number(e.currentTarget.value))} min={0} max={59}/>
                     </label>
                     <input type="text" name="periodicity" id="postPeriodicity"  value={day+':'+hour+':'+minute} hidden readOnly/>
                 
                     <br />
-                    <input type="text" id="tag" value={currentTag} onChange={() => handleTagChange}/>
+                    <input type="text" id="tag" value={currentTag} onChange={(e) => handleTagChange(e.currentTarget.value)}/>
                     <button type="button" id="addTag" onClick={addTag} >Add tag</button>
                     <div>
                         {tags.map(tag => (
