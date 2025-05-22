@@ -1,9 +1,12 @@
 package cz.cuni.mff.web_crawler_backend.service.api;
 
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
+import cz.cuni.mff.web_crawler_backend.database.model.Execution;
 import cz.cuni.mff.web_crawler_backend.database.model.PeriodicityTime;
 import cz.cuni.mff.web_crawler_backend.database.model.Tag;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
+import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
+import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.PeriodicityTimeRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.TagRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
@@ -13,11 +16,11 @@ import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class WebsiteRecordService {
@@ -27,18 +30,22 @@ public class WebsiteRecordService {
     private final PeriodicityTimeRepository periodicityTimeRepository;
     private final ExecutionService executionService;
     private final CrawlService crawlService;
+    private final CrawlResultRepository crawlResultRepository;
+    private final ExecutionRepository executionRepository;
 
     @Autowired
     public WebsiteRecordService(WebsiteRecordRepository websiteRecordRepository,
                                 TagRepository tagRepository,
                                 PeriodicityTimeRepository periodicityTimeRepository,
                                 ExecutionService executionService,
-                                CrawlService crawlService) {
+                                CrawlService crawlService, CrawlResultRepository crawlResultRepository, ExecutionRepository executionRepository) {
         this.websiteRecordRepository = websiteRecordRepository;
         this.tagRepository = tagRepository;
         this.periodicityTimeRepository = periodicityTimeRepository;
         this.executionService = executionService;
         this.crawlService = crawlService;
+        this.crawlResultRepository = crawlResultRepository;
+        this.executionRepository = executionRepository;
     }
 
     /**
@@ -46,8 +53,8 @@ public class WebsiteRecordService {
      *
      * @return ok response status and list of all records
      */
-    public ResponseEntity<List<WebsiteRecord>> getRecords() {
-        return new ResponseEntity<>(websiteRecordRepository.findAll(), HttpStatus.OK);
+    public List<WebsiteRecord> getRecords() {
+        return websiteRecordRepository.findAll();
     }
 
     /**
@@ -62,8 +69,8 @@ public class WebsiteRecordService {
      * @return Ok response with newly created object
      * @throws FieldValidationException when user given invalid input for any field
      */
-    public ResponseEntity<WebsiteRecord> addRecord(String label, String url, String boundaryRegExp,
-                                                   String periodicity, Boolean active, String tags) {
+    public WebsiteRecord addRecord(String label, String url, String boundaryRegExp,
+                                   String periodicity, Boolean active, String tags) {
 
         if (label == null || label.isBlank()) {
             throw new FieldValidationException("label");
@@ -92,7 +99,7 @@ public class WebsiteRecordService {
             if (Boolean.TRUE.equals(active)) {
                 executionService.startExecution(wr.getId());
             }
-            return ResponseEntity.ok(wr);
+            return wr;
 
         } catch (Exception e) {
             throw new InternalServerException(e.getMessage());
@@ -107,12 +114,12 @@ public class WebsiteRecordService {
      * @return Found record
      * @throws NotFoundException when record with no such id exists
      */
-    public ResponseEntity<WebsiteRecord> getRecord(Long id) {
+    public WebsiteRecord getRecord(Long id) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
         if (wr == null) {
             throw new NotFoundException("WebsiteRecord");
         }
-        return ResponseEntity.ok(wr);
+        return wr;
     }
 
     /**
@@ -162,6 +169,7 @@ public class WebsiteRecordService {
             }
         }
 
+        executionService.deactivateExecution(wr.getId());
         if (active != null) {
             wr.setActive(active);
         }
@@ -173,6 +181,10 @@ public class WebsiteRecordService {
             wr.setCrawledData(null);
         }
 
+        if (wr.isActive()) {
+            executionService.startExecution(wr.getId());
+        }
+
         websiteRecordRepository.save(wr);
         return wr;
     }
@@ -182,10 +194,10 @@ public class WebsiteRecordService {
      *
      * @param id ID of record to delete
      */
-    public ResponseEntity<Void> deleteRecord(Long id) {
+    public void deleteRecord(Long id) {
+        executionService.deactivateExecution(id);
         deleteAssociatedData(id);
         websiteRecordRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -211,5 +223,14 @@ public class WebsiteRecordService {
      */
     public void updateCrawledData(CrawlResult root, Long id) {
         websiteRecordRepository.updateCrawledData(root, id);
+    }
+
+    public List<WebsiteRecord> getRecordsCrawlingUrl(String url) {
+        return crawlResultRepository.findCrawlResultsByUrl(url).stream()
+                .map(CrawlResult::getExecutionId)
+                .distinct()
+                .map(e -> executionRepository.findById(e).orElse(null)).filter(Objects::nonNull)
+                .map(Execution::getWebsite)
+                .toList();
     }
 }
