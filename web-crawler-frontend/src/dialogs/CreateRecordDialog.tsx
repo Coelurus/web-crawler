@@ -49,9 +49,7 @@ export default function CreateRecordDialog({setActiveRecordIds, setChange}:Creat
 
         formData.set('tags', JSON.stringify( tags ))
         formData.set('active', 'true')
-        for (const [key, value] of formData.entries()) {
-           console.log(key, value)
-        }
+
         try{
             const response = await fetch("./api/websites",{
                 method: 'POST',

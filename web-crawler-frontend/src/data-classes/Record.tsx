@@ -1,4 +1,4 @@
-import CrawledWeb from "../graph/CrawledWeb";
+import CrawledWeb from "./CrawledWeb";
 import Execution from "./Execution";
 import PeriodicityTime from "./PeriodicityTime";
 import Tag from "./Tag";

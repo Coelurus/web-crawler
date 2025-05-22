@@ -1,7 +1,7 @@
 import { LinkObject } from "react-force-graph-2d";
 import Execution from "./data-classes/Execution";
 import Record from "./data-classes/Record";
-import CrawledWeb from "./graph/CrawledWeb";
+import CrawledWeb from "./data-classes/CrawledWeb";
 
 export async function fetchRecords(): Promise<Record[]> {
     const responseWebsites = await fetch("/api/websites")

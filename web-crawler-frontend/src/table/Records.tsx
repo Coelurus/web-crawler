@@ -1,9 +1,9 @@
 
 import { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
 
-import RecordsHeader from '../table/RecordsHeader'
-import RecordsTable from '../table/RecordsTable'
-import Record from './Record'
+import RecordsHeader from './RecordsHeader'
+import RecordsTable from './RecordsTable'
+import Record from '../data-classes/Record'
 
 
 type RecordsProps = {
@@ -22,7 +22,7 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
     const [label, setLabel] = useState('')
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
-    //TODO: sort by
+    
     //TODO: hodit filry do jednoho [filters, setFilters] = useState({url: '', ...})
 
 

@@ -58,23 +58,23 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         return Math.floor(itemsCount/itemsPerPage)+1
     }
 
-    function changeActiveRecord(record_id: number){
-        if (inActiveSelection(record_id)) {
-            setActiveRecordIds(prev => prev.filter(record_id_item => record_id_item !== record_id))
+    function changeActiveRecord(recordId: number){
+        if (inActiveSelection(recordId)) {
+            setActiveRecordIds(prev => prev.filter(record_id_item => record_id_item !== recordId))
         }
         else { 
-            setActiveRecordIds(prev => [...prev, record_id]) 
+            setActiveRecordIds(prev => [...prev, recordId]) 
         }
         setChange(prevState => !prevState)
     }
 
-    async function deleteRecordFromTable(record_id: number){
-        await deleteRecord(record_id)
+    async function deleteRecordFromTable(recordId: number){
+        await deleteRecord(recordId)
         setChange(prevState => !prevState)
     } 
 
-    function inActiveSelection(record_id: number){
-        return activeRecordIds.includes(record_id)
+    function inActiveSelection(recordId: number){
+        return activeRecordIds.includes(recordId)
     }
 
     function getTime(startTime: Date, endTime: Date) : string {
@@ -82,6 +82,31 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
         const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
         return `${minutes}m ${seconds}s`
+    }
+
+    async function toggleActive(record: Record, newValue: boolean){
+        const formData = new FormData()
+        formData.set('active', newValue.toString())
+        formData.set('label', record.label)
+        formData.set('url', record.url)
+        formData.set('boundaryRegExp', record.boundaryRegExp)
+        const periodicity = `${record.periodicity.day}:${record.periodicity.hour}:${record.periodicity.minute}`
+        formData.set('periodicity', periodicity)
+        formData.set('tags', JSON.stringify(record.tags.map(tag => tag.name)))
+        formData.set('crawledData', JSON.stringify(record.crawledData))
+        
+
+        try{
+            await fetch(`/api/websites/${record.id}`, {
+                method: 'PUT',
+                body: formData
+            })
+
+            setChange(prev => !prev)
+        }
+        catch (error){
+            console.error('Failed to update active status', error)
+        }
     }
 
     return(
@@ -113,7 +138,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                             <td>{record.lastExecution && new Date(record.lastExecution.startTime).toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
                             <td>{record.lastExecution && record.lastExecution.status}</td>
                             <td><input type="checkbox" name="" id={'active-select-' + record.id} checked={inActiveSelection(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>
-                            <td><form action="put"></form><input type="checkbox" checked={record.active} readOnly/></td>
+                            <td><input type="checkbox" checked={record.active} onChange={(e) => toggleActive(record, e.target.checked)}/></td>
                             <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
                             <td><button onClick={() => deleteRecordFromTable(record.id)}>Delete</button></td>
                         </tr>

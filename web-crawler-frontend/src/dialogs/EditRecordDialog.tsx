@@ -16,10 +16,11 @@ export default function EditRecordDialog({ editingRecord, hideDialog, setChange 
         formData.set('active', 'true')
 
         try {
-            const response = await fetch("/api/websites/" + editingRecord.id, {
+            await fetch("/api/websites/" + editingRecord.id, {
                 method: 'PUT',
                 body: formData
             })
+
             setChange(prevState => !prevState)
             hideDialog()
         } catch (error) {

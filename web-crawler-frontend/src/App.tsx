@@ -1,15 +1,15 @@
 
 import { ChangeEvent, useEffect, useMemo, useState, useRef } from 'react'
 import './css/App.css'
-import Records from "./data-classes/Records"
+import Records from "./table/Records"
 import Record from './data-classes/Record'
-import ForceGraph2D, { LinkObject, NodeObject, ForceGraphMethods  } from 'react-force-graph-2d'
+import { LinkObject, NodeObject  } from 'react-force-graph-2d'
 
 import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CreateRecordDialog from './dialogs/CreateRecordDialog'
 import EditRecordDialog from './dialogs/EditRecordDialog'
 import CrawledDetail from './graph/CrawledDetail'
-import CrawledWeb from './graph/CrawledWeb'
+import CrawledWeb from './data-classes/CrawledWeb'
 import Graph from './graph/Graph'
 
 
@@ -50,13 +50,15 @@ export default function App() {
   type NodesDomainMapping = {processedNodes: NodeObject[], webToDomain: {[key: number]: string}}
 
   const {processedNodes, webToDomain}: NodesDomainMapping = useMemo(processNodes, [allCrawls, domainView, change])
-
   const processedLinks = useMemo(processLinks, [allLinks, domainView, change])
+  
+  
+  
   const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
-    
     setDomainView(event.currentTarget.checked)
     setChange(prevState => !prevState)
   }
+
   function processNodes() : NodesDomainMapping {
     if (allCrawls.length === 0) return {processedNodes: [], webToDomain: {}}
     const activeRecordExecs = getExecutionIds(activeRecordIds)
@@ -135,17 +137,40 @@ export default function App() {
 
   return(
     <>
-      <CreateRecordDialog setActiveRecordIds={setActiveRecordIds} setChange={setChange} />
-      <Records records={records} activeRecordIds={activeRecordIds} setActiveRecordIds={setActiveRecordIds} tags={tags} setEditingRecord={setEditingRecord} setChange={setChange}/>
-      {editingRecord && <><EditRecordDialog editingRecord={editingRecord} hideDialog={() => setEditingRecord(null)} setChange={setChange}/> </>}
+      <CreateRecordDialog 
+        setActiveRecordIds={setActiveRecordIds} 
+        setChange={setChange} 
+      />
+      <Records 
+        records={records} 
+        activeRecordIds={activeRecordIds} 
+        setActiveRecordIds={setActiveRecordIds} 
+        tags={tags} 
+        setEditingRecord={setEditingRecord} 
+        setChange={setChange}
+      />
+      {editingRecord && 
+      <EditRecordDialog 
+        editingRecord={editingRecord} 
+        hideDialog={() => setEditingRecord(null)} 
+        setChange={setChange}
+      />}
       
       <hr />
       <label htmlFor="domain-checkbox">Domain view
         <input type="checkbox" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-checkbox'/>
       </label>
       <div id='graph'>
-        {selectedNode && <CrawledDetail node={selectedNode} setNode={setSelectedNode}/> }
-        <Graph nodes={processedNodes} links={processedLinks} setSelectedNode={setSelectedNode} />
+        {selectedNode && 
+        <CrawledDetail 
+          node={selectedNode} 
+          setNode={setSelectedNode}
+        />}
+        <Graph 
+          nodes={processedNodes} 
+          links={processedLinks} 
+          setSelectedNode={setSelectedNode} 
+        />
       </div>
       <hr />
       </>
