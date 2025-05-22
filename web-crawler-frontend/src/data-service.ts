@@ -11,7 +11,8 @@ export async function fetchRecords(): Promise<Record[]> {
         if (record.crawledData !== null) {
             const response = await fetch("/api/executions/" + record.crawledData.executionId)
             const execution: Execution = await response.json()
-
+            execution.startTime = new Date(execution.startTime)
+            execution.endTime = new Date(execution.endTime)
             record.lastExecution = execution
         }
     }))

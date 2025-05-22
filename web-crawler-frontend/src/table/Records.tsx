@@ -8,6 +8,7 @@ import Record from '../data-classes/Record'
 
 type RecordsProps = {
   records:Record[], 
+  setRecords: Dispatch<SetStateAction<Record[]>>,
   activeRecordIds: Array<number>,
   setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
   tags:string[], 
@@ -15,59 +16,69 @@ type RecordsProps = {
   setChange:Dispatch<SetStateAction<boolean>>
 }
 
-export default function Records({records, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, setChange}: RecordsProps)
-    {
+export default function Records({records, setRecords, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, setChange}: RecordsProps)
+{
 
-    const [url, setUrl] = useState('')
-    const [label, setLabel] = useState('')
-    const [selectedTags, setSelectedTags] = useState<string[]>([])
-    const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
+  const [url, setUrl] = useState('')
+  const [label, setLabel] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
+  
+  //TODO: hodit filry do jednoho [filters, setFilters] = useState({url: '', ...})
+
+
+  const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value)
+  }
+  const handleLabelChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setLabel(e.target.value)
+  }
+  const handleTagsChange = (newTags: Array<string>) => {
+    setSelectedTags(newTags)
+  }
+
+  const handleSortChange = (value: boolean) =>{
     
-    //TODO: hodit filry do jednoho [filters, setFilters] = useState({url: '', ...})
+    setSortByUrl(value)
+    setRecords(prev => [...prev].sort((a:Record, b:Record) => {
+      
+      if (sortByUrl){
+        return a.url.localeCompare(b.url)
+      }
+      const timeA = (a.lastExecution?.startTime ?? new Date(0)).getTime();
+      const timeB = (b.lastExecution?.startTime ?? new Date(0)).getTime();
+      return timeA - timeB
+    }))
+  }
 
 
-    const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-      setUrl(e.target.value)
-    }
-    const handleLabelChange = (e: ChangeEvent<HTMLInputElement>) => {
-      setLabel(e.target.value)
-    }
-    const handleTagsChange = (newTags: Array<string>) => {
-      setSelectedTags(newTags)
-    }
+  return (
+    <>
+      <h1>Records</h1>
+      <RecordsHeader 
+        url={url} 
+        label={label} 
+        sortByUrl={sortByUrl}
+        tags={tags}
+        selectedTags={selectedTags}
+        onUrlChange={handleUrlChange} 
+        onLabelChange={handleLabelChange} 
+        onSelectedTagsChange={handleTagsChange}
+        onSortByUrlChange={handleSortChange}
+      />
+      <RecordsTable 
+        records={records} 
+        activeRecordIds={activeRecordIds}
+        setActiveRecordIds={setActiveRecordIds}
+        itemsPerPage={3}
+        sortByUrl={sortByUrl} 
+        searchLabel={label} 
+        searchUrl={url}
+        searchTags={selectedTags}
+        setEditingRecord={setEditingRecord}
+        setChange={setChange}
+      />
 
-    const handleSortChange = (e: ChangeEvent<HTMLInputElement>) =>{
-      setSortByUrl(e.target.checked)
-    }
-
-
-    return (
-      <>
-        <h1>Records</h1>
-        <RecordsHeader 
-          url={url} 
-          label={label} 
-          sortByUrl={sortByUrl}
-          tags={tags}
-          selectedTags={selectedTags}
-          onUrlChange={handleUrlChange} 
-          onLabelChange={handleLabelChange} 
-          onSelectedTagsChange={handleTagsChange}
-          onSortByUrlChange={handleSortChange}
-        />
-        <RecordsTable 
-          records={records} 
-          activeRecordIds={activeRecordIds}
-          setActiveRecordIds={setActiveRecordIds}
-          itemsPerPage={3}
-          sortByUrl={sortByUrl} 
-          searchLabel={label} 
-          searchUrl={url}
-          searchTags={selectedTags}
-          setEditingRecord={setEditingRecord}
-          setChange={setChange}
-        />
-
-      </>
-    )
+    </>
+  )
 }

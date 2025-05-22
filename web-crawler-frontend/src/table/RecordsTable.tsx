@@ -36,23 +36,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     }
     }, [currentPage, totalPages]);
 
-    // sort by url
-    if (sortByUrl){
-        records.sort((a,b) => a.url.localeCompare(b.url))
-    }
-    else{// sort by last execution
-        records.sort((a,b) => {
-            
-            if (a.lastExecution !== undefined && b.lastExecution !== undefined){
-
-                return a.lastExecution.startTime.getTime() - b.lastExecution.startTime.getTime()
-            }
-            else{
-                return Number.MIN_SAFE_INTEGER
-            }
-        })
-    }
-    
+   
     function calcPageCount(itemsPerPage:number, itemsCount:number): number{
         if (itemsCount%itemsPerPage === 0) return itemsCount/itemsPerPage
         return Math.floor(itemsCount/itemsPerPage)+1

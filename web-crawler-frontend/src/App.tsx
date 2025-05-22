@@ -11,6 +11,7 @@ import EditRecordDialog from './dialogs/EditRecordDialog'
 import CrawledDetail from './graph/CrawledDetail'
 import CrawledWeb from './data-classes/CrawledWeb'
 import Graph from './graph/Graph'
+import { ToggleSwitch } from './ToggleSwitch'
 
 
 
@@ -54,8 +55,8 @@ export default function App() {
   
   
   
-  const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
-    setDomainView(event.currentTarget.checked)
+  const handleViewChange = (value: boolean) =>{
+    setDomainView(value)
     setChange(prevState => !prevState)
   }
 
@@ -143,6 +144,7 @@ export default function App() {
       />
       <Records 
         records={records} 
+        setRecords={setRecords}
         activeRecordIds={activeRecordIds} 
         setActiveRecordIds={setActiveRecordIds} 
         tags={tags} 
@@ -157,18 +159,15 @@ export default function App() {
       />}
       
       <hr />
-      <label htmlFor="domain-checkbox">Domain view
-        <input type="checkbox" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-checkbox'/>
+      <label>
+        View:
+        <ToggleSwitch labelOn='Domain' labelOff='Web' checked={domainView} onChange={handleViewChange} />
       </label>
       <div id='graph'>
-        {selectedNode && 
-        <CrawledDetail 
-          node={selectedNode} 
-          setNode={setSelectedNode}
-        />}
         <Graph 
           nodes={processedNodes} 
           links={processedLinks} 
+          selectedNode={selectedNode}
           setSelectedNode={setSelectedNode} 
         />
       </div>
