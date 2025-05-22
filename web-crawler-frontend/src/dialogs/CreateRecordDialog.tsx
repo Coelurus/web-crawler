@@ -39,13 +39,9 @@ export default function CreateRecordDialog({setActiveRecordIds, setLiveMode, set
     }
     const toggleCreateDialog = () => {
         const dialog = document.getElementById('create-dialog') as HTMLElement
-        const button = document.getElementById('toggle-create-dialog') as HTMLButtonElement
+        const overlay = document.getElementById('create-dialog-overlay') as HTMLElement
         dialog.hidden = !dialog.hidden
-        if (dialog.hidden) {
-            button.textContent = 'Show Create Record Dialog'
-        } else {
-            button.textContent = 'Hide Create Record Dialog'
-        }
+        overlay.hidden = !overlay.hidden
     }
     async function handleSubmit(event: FormEvent) {
         event.preventDefault()
@@ -78,8 +74,9 @@ export default function CreateRecordDialog({setActiveRecordIds, setLiveMode, set
     }
     return(
         <>
-            <button onClick={toggleCreateDialog} id="toggle-create-dialog">Show Create Record Dialog</button>
-            <div id="create-dialog" hidden>
+            <button onClick={toggleCreateDialog} id="toggle-create-dialog">Create a Record</button>
+            <div className="dialog-overlay" id="create-dialog-overlay" hidden onClick={toggleCreateDialog}></div>
+            <div className="dialog" id="create-dialog" hidden>
                 <h2>Create Record</h2>
                 <form id="createForm" className="dialog" onSubmit={handleSubmit}>
                     <label htmlFor="postLabel">Label:
@@ -116,6 +113,7 @@ export default function CreateRecordDialog({setActiveRecordIds, setLiveMode, set
                     </div>
                     <br />
                     <button type="submit" value="Submit" >Submit</button>
+                    <button type="button" onClick={toggleCreateDialog}>Close</button>
                 </form>
             </div>
         </>
