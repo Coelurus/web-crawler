@@ -1,4 +1,4 @@
-import './css/ToggleSwitch.css'
+import '../css/ToggleSwitch.css'
 
 type ToggleSwitchProps = {
     switchLabel: string;
@@ -10,7 +10,7 @@ type ToggleSwitchProps = {
 
 export const ToggleSwitch = ({ switchLabel, labelOn, labelOff, checked, onChange }: ToggleSwitchProps) => {
   return (
-    <label htmlFor={"switch-wrapper-"+switchLabel}>
+    <label>
       {switchLabel}
       <div className={"switch-wrapper-"+switchLabel}>
         <span className={!checked ? 'label active' : 'label'}>{labelOff}</span>

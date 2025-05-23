@@ -39,9 +39,6 @@
     transition: background-color 0.2s ease;
 }
 
-#toggle-create-dialog:hover {
-    background-color: #0056b3;
-}
 
 .dialog {
     flex-direction: column;

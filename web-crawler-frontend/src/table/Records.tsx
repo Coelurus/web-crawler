@@ -1,9 +1,11 @@
 
-import { ChangeEvent, Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from 'react'
 
 import RecordsHeader from './RecordsHeader'
 import RecordsTable from './RecordsTable'
 import Record from '../data-classes/Record'
+import toast from 'react-hot-toast'
+import { createRecord } from '../data-service'
 
 
 type RecordsProps = {
@@ -23,7 +25,6 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
   
-  //TODO: hodit filry do jednoho [filters, setFilters] = useState({url: '', ...})
 
 
   const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -50,7 +51,6 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
   const handleSortChange = (value: boolean) => {
     setSortByUrl(value);
   };
-
 
   return (
     <>

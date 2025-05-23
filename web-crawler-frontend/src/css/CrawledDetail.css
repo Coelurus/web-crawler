@@ -8,12 +8,10 @@
     padding: 1em;
     overflow-wrap: break-word;
 }
-#crawled-detail span{
-    overflow: scroll;
-}
-#website-list{
+#records-list{
     max-height: 100px;
     overflow: scroll;
+    overflow-x: hidden;
 }
 
 @media (prefers-color-scheme: dark) {

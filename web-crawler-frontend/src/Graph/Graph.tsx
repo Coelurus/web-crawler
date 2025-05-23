@@ -24,8 +24,8 @@ export default function Graph({nodes, links, selectedNode, setSelectedNode}:Grap
         }
         };
 
-        handleResize(); // Inicializace
-        window.addEventListener('resize', handleResize); // Dynamická změna velikosti
+        handleResize(); 
+        window.addEventListener('resize', handleResize);
 
         return () => window.removeEventListener('resize', handleResize);
     }, []);

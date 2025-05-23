@@ -1,6 +1,6 @@
 import Record from '../data-classes/Record'
 import '../css/table.css'
-import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import { deleteRecord, editRecord } from '../data-service'
 
 type RecordsTableProps = {
@@ -58,12 +58,19 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     function inActiveSelection(recordId: number){
         return activeRecordIds.includes(recordId)
     }
-
-    function getTime(startTime: Date, endTime: Date) : string {
+    const executionTime = useMemo(() => {}, [])
+    function duration(startTime: Date, endTime: Date) : string {
+        
+        if (endTime === null){
+            endTime = new Date()
+        }
         const timeOfExecMilliseconds: number = endTime.getTime() - startTime.getTime()
+        
         const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
         const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
+        
         return `${minutes}m ${seconds}s`
+        
     }
 
     async function toggleActive(record: Record, newValue: boolean){
@@ -102,8 +109,8 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                                 <span key={tag.id} className='tag'>{tag.name}</span>
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
-                            <td>{record.lastExecution && record.lastExecution.endTime && getTime(new Date(record.lastExecution.startTime), new Date(record.lastExecution.endTime))}</td>
-                            <td>{record.lastExecution && new Date(record.lastExecution.startTime).toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
+                            <td>{record.lastExecution && (record.lastExecution.endTime && (duration(record.lastExecution.startTime, record.lastExecution.endTime)))}</td>
+                            <td>{record.lastExecution && record.lastExecution.startTime.toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
                             <td>{record.lastExecution && record.lastExecution.status}</td>
                             <td><input type="checkbox" name="" id={'active-select-' + record.id} checked={inActiveSelection(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>
                             <td><input type="checkbox" checked={record.active} onChange={(e) => toggleActive(record, e.target.checked)}/></td>

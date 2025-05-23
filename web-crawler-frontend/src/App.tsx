@@ -1,17 +1,16 @@
 
-import { useEffect, useMemo, useState } from 'react'
-import './css/App.css'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { LinkObject, NodeObject  } from 'react-force-graph-2d'
+import Graph from './graph/Graph'
 import Records from "./table/Records"
 import Record from './data-classes/Record'
-import { LinkObject, NodeObject  } from 'react-force-graph-2d'
-
-import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
-import CreateRecordDialog from './dialogs/CreateRecordDialog'
-import EditRecordDialog from './dialogs/EditRecordDialog'
+import RecordDialog from './dialogs/RecordDialog'
+import { createRecord, editRecord, fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CrawledWeb from './data-classes/CrawledWeb'
-import Graph from './graph/Graph'
 import { ToggleSwitch } from './utils/ToggleSwitch'
-
+import toast, { Toaster } from 'react-hot-toast'
+import './css/CreateDialog.css'
+import './css/App.css'
 
 
 export default function App() {
@@ -26,11 +25,11 @@ export default function App() {
   const [domainView, setDomainView] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<NodeObject|null>(null)
   const [liveMode, setLiveMode] = useState<boolean>(false)
-
   const liveIntervalMs = 5000
 
   useEffect(() => {
     const fetchAll = async () => {
+      
       const [recordsData, linksData, tagsData, crawlsData] = await Promise.all([
         fetchRecords(),
         fetchLinks(),
@@ -38,12 +37,12 @@ export default function App() {
         fetchCrawls()
       ])
 
+
       setRecords(recordsData)
       setAllLinks(linksData)
       setTags(tagsData)
       setAllCrawls(crawlsData)
     }
-
     fetchAll()
     let interval: number | null = null;
 
@@ -150,13 +149,65 @@ export default function App() {
     return activeRecords.map(record => record.crawledData?.executionId)
   }
 
+  function validateFormData(formData: FormData): boolean {
+      return formData.has('label') && formData.get('label')?.toString().length !== 0 &&
+      formData.has('url') && formData.get('url')?.toString().length !== 0 &&
+      formData.has('boundaryRegExp') && formData.get('boundaryRegExp')?.toString().length !== 0 &&
+      formData.has('periodicity') && formData.get('periodicity') !== '0:0:0'
+  }
 
+  async function onCreateSubmit(event: FormEvent) {
+      event.preventDefault()
+      const form = event.currentTarget as HTMLFormElement
+      const formData = new FormData(form)
+
+      formData.set('tags', JSON.stringify( tags ))
+      formData.set('active', 'true')
+
+      if (!validateFormData(formData)){
+        toast.error(`Please fill the label, url, boundary RegEx and periodicity`, {duration: 3250})
+        return
+      }
+
+      try{
+        const addedRecord = await createRecord(formData)
+
+        setChange(prevState => !prevState)
+        setLiveMode(true)
+        setActiveRecordIds(prev => [...prev, addedRecord.id])
+        toast.success(`Record ${addedRecord.label} created`)
+          
+      } catch (error){
+          toast.error(`Couldn't create a record`)
+      }
+  }
+  async function onEditSubmit(event: FormEvent) {
+      event.preventDefault()
+      const form = event.currentTarget as HTMLFormElement
+      const formData = new FormData(form)
+
+      formData.set('tags', JSON.stringify(tags))
+      formData.set('active', 'true')
+      if (editingRecord === null){
+        throw new Error("Editing record missing")
+      }
+      formData.set('id', editingRecord.id.toString())
+
+      try {
+          await editRecord(formData)
+          setChange(prevState => !prevState)
+          toast.success(`Record edited`)
+      } catch (error) {
+          toast.error(`Editing record wasn't successful`)
+      }
+
+  }
   return(
     <>
-      <CreateRecordDialog 
-        setActiveRecordIds={setActiveRecordIds} 
-        setLiveMode={setLiveMode}
-        setChange={setChange} 
+      <Toaster />
+      <RecordDialog id='create-dialog' 
+        buttonLabel='Create a Record' 
+        onSubmit={onCreateSubmit} 
       />
       <Records 
         records={records} 
@@ -167,10 +218,10 @@ export default function App() {
         setChange={setChange}
       />
       {editingRecord && 
-      <EditRecordDialog 
+      <RecordDialog id='edit-dialog' 
+        onSubmit={onEditSubmit} 
         editingRecord={editingRecord} 
-        hideDialog={() => setEditingRecord(null)} 
-        setChange={setChange}
+        emptyEditingRecord={() => setEditingRecord(null)}
       />}
       
       <hr />
