@@ -1,7 +1,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { LinkObject, NodeObject  } from 'react-force-graph-2d'
-import Graph from './graph-components/Graph'
+import Graph from './graph/Graph'
 import Records from "./table/Records"
 import Record from './data-classes/Record'
 import RecordDialog from './dialogs/RecordDialog'
