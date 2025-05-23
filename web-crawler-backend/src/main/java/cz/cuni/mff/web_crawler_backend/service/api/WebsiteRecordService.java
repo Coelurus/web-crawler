@@ -144,22 +144,30 @@ public class WebsiteRecordService {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
 
         boolean deleteData = false;
+        boolean periodicityChanged = false;
 
         if (label != null) {
             wr.setLabel(label);
         }
 
         if (url != null) {
+            if (!url.equals(wr.getUrl())) {
+                deleteData = true;
+            }
             wr.setUrl(url);
-            deleteData = true;
         }
 
         if (boundaryRegExp != null) {
+            if (!boundaryRegExp.equals(wr.getBoundaryRegExp())) {
+                deleteData = true;
+            }
             wr.setBoundaryRegExp(boundaryRegExp);
-            deleteData = true;
         }
 
         if (periodicity != null) {
+            if (!periodicity.equals(wr.getPeriodicity().toString())) {
+                periodicityChanged = true;
+            }
             wr.setPeriodicity(new PeriodicityTime(periodicity));
         }
 
@@ -180,20 +188,25 @@ public class WebsiteRecordService {
             }
         }
 
-        executionService.deactivateExecution(wr.getId());
         if (active != null) {
+            // Incoming activation
+            if (active && !wr.isActive()) {
+                executionService.startExecution(wr.getId());
+                
+            }
+            // Was active
+            else if (Boolean.FALSE.equals(active) && wr.isActive()) {
+                executionService.deactivateExecution(wr.getId());
+            }
             wr.setActive(active);
         }
+        if (periodicityChanged) {
+            executionService.startExecution(wr.getId());
+        }
 
-        // TODO: fix this někdy to prostě má problém najít ten execution idk proč
-        // Delete previously crawled data since it is outdated
         if (deleteData) {
             deleteAssociatedData(id);
             wr.setCrawledData(null);
-        }
-
-        if (wr.isActive()) {
-            executionService.startExecution(wr.getId());
         }
 
         websiteRecordRepository.save(wr);
