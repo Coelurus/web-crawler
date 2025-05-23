@@ -1,55 +1,46 @@
 import { LinkObject } from "react-force-graph-2d";
-import Execution from "./record_components/Execution";
-import Record from "./record_components/Record";
-import CrawledWeb from "./Graph/CrawledWeb";
+import Execution from "./data-classes/Execution";
+import Record from "./data-classes/Record";
+import CrawledWeb from "./data-classes/CrawledWeb";
 
 export async function fetchRecords(): Promise<Record[]> {
     const responseWebsites = await fetch("/api/websites")
+    if (!responseWebsites.ok){
+        throw new Error("Error occurred while fetching records")
+    }
     const records: Record[] = await responseWebsites.json()
 
     await Promise.all(records.map(async (record) => {
         if (record.crawledData !== null) {
             const response = await fetch("/api/executions/" + record.crawledData.executionId)
-            const execution = await response.json()
-
-            record.lastExecution = execution.startTime
-
-            const timeOfExecMilliseconds: number =
-                new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
-
-            if (execution.status.toLowerCase() === 'failed') {
-                record.timeOfExecution = 'FAILED'
-            } else {
-                const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
-                const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
-                record.timeOfExecution = `${minutes}m ${seconds}s`
-            }
+            const execution: Execution = await response.json()
+            execution.startTime = new Date(execution.startTime)
+            execution.endTime = new Date(execution.endTime)
+            record.lastExecution = execution
         }
     }))
     return records
 }
 export async function fetchTags(): Promise<string[]> {
     const response = await fetch("/api/tags")
-
-    return response.json()
-}
-
-class LinkResponse {
-    public id: number
-    public from: number
-    public to: number
-    public executionId: number
-
-    public constructor(id: number, from_id: number, to_id: number, execution_id: number) {
-        this.id = id
-        this.from = from_id
-        this.to = to_id
-        this.executionId = execution_id
+    if (!response.ok){
+        throw new Error("Error occurred while fetching tags")
     }
+    return await response.json()
 }
 
-export async function fetchLinks(): Promise<LinkObject[]> {
-    const response = await fetch("/api/crawl/link")
+type LinkResponse = {
+    id: number,
+    from: number,
+    to: number,
+    executionId: number
+}
+
+export async function fetchLinks(execution_id: number|undefined = undefined): Promise<LinkObject[]> {
+    const response = execution_id ? await fetch(`/api/crawl/link/${execution_id}`) : await fetch("/api/crawl/link")
+    if (!response.ok){
+        throw new Error("Error occurred while fetching links")
+    }
     const linkResponses: LinkResponse[] = await response.json()
     return linkResponses.map<LinkObject>(linkRes => {
         return {
@@ -59,10 +50,71 @@ export async function fetchLinks(): Promise<LinkObject[]> {
     })
 }
 
-export async function fetchCrawls(): Promise<CrawledWeb[]> {
-    const response = await fetch("/api/crawl/data")
+export async function fetchCrawls(execution_id: number|undefined = undefined): Promise<CrawledWeb[]> {
+    
+    const response = execution_id ? await fetch(`/api/crawl/data/${execution_id}`) : await fetch("/api/crawl/data")
+    if (!response.ok){
+        throw new Error("Error occurred while fetching crawls")
+    }
+    const result = await response.json()
+    return result
+}
 
+export async function fetchRecordsForCrawl(url: string){
+    const response = await fetch(`/api/websites/url?query=${url}`)
+    if (!response.ok){
+        throw new Error("Error occurred while fetching records that crawled " + url)
+    }
+    const result = await response.json()
+    return result
+}
+
+export async function runRecordExecution(recordId: number){
+    const response = await fetch(`/api/execute/${recordId}`, {
+        method: 'POST'
+    })
+
+    if (!response.ok){
+        throw new Error('Error occurred while trying to run record ' + recordId)
+    }
+}
+
+export async function createRecord(formData: FormData) : Promise<Record>{
+    const response = await fetch("./api/websites",{
+        method: 'POST',
+        body: formData
+    })
+    if (!response.ok){
+        throw new Error("Error occurred while trying to create a record")
+    }
     return await response.json()
+}
+
+export async function editRecord(editedRecord:Record|FormData){
+    const formData: FormData = editedRecord instanceof FormData ? editedRecord : new FormData()
+    
+    // editedRecord is a Record
+    if ('id' in editedRecord){
+        formData.set('active', editedRecord.active.toString())
+        formData.set('label', editedRecord.label)
+        formData.set('url', editedRecord.url)
+        formData.set('boundaryRegExp', editedRecord.boundaryRegExp)
+        const periodicity = `${editedRecord.periodicity.day}:${editedRecord.periodicity.hour}:${editedRecord.periodicity.minute}`
+        formData.set('periodicity', periodicity)
+        formData.set('tags', JSON.stringify(editedRecord.tags.map(tag => tag.name)))
+        formData.set('crawledData', JSON.stringify(editedRecord.crawledData))
+        formData.set('id', editedRecord.id.toString())
+        
+    }
+    
+    const response = await fetch("/api/websites/" + formData.get('id'), {
+        method: 'PUT',
+        body: formData
+    })
+
+    if (!response.ok){
+        throw new Error("Error occurred while editing record")
+    }
 }
 
 export async function deleteRecord(id: number) {
@@ -71,7 +123,6 @@ export async function deleteRecord(id: number) {
     })
 
     if (!response.ok) {
-        throw new Error('Network resopnse was not ok')
+        throw new Error('Error occurred when deleting record')
     }
-    return response.json()
 }

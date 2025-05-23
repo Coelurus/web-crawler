@@ -1,175 +1,245 @@
 
-import { ChangeEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { LinkObject, NodeObject  } from 'react-force-graph-2d'
+import Graph from './graph/Graph'
+import Records from "./table/Records"
+import Record from './data-classes/Record'
+import RecordDialog from './dialogs/RecordDialog'
+import { createRecord, editRecord, fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
+import CrawledWeb from './data-classes/CrawledWeb'
+import { ToggleSwitch } from './utils/ToggleSwitch'
+import toast, { Toaster } from 'react-hot-toast'
+import './css/CreateDialog.css'
 import './css/App.css'
-import Records from "./record_components/Records"
-import Record from './record_components/Record'
-import ForceGraph, { LinkObject, NodeObject } from 'react-force-graph-2d'
-
-import { fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
-import CreateRecordDialog from './CreateRecordDialog'
-import EditRecordDialog from './EditRecordDialog'
-import CrawledDetail from './Graph/CrawledDetail'
 
 
 export default function App() {
-  
-  // const recordsDummy = [
-  //   new Record(0, 'webik', 'https://webik.ms.mff.cuni.cz', '.*wiki.*', '1:20:00', ['UNI', 'WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04' ),
-  //   new Record(1, 'Wiki', 'https://cs.wikipedia.org', '*.wiki.*', '00:24:00', ['WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(2, 'test', 'https://a.b.cz', '*aaa*', '00:00:30', ['UNI'],new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(3, 'webik1', 'https://webik.ms.mff.cuni.cz', '.*wiki.*', '1:20:00', ['UNI', 'WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04' ),
-  //   new Record(4, 'Wiki1', 'https://cs.wikipedia.org', '*.wiki.*', '00:24:00', ['WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(5, 'test1', 'https://a.b.cz', '*aaa*', '00:00:30', ['UNI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(6, 'webik2', 'https://webik.ms.mff.cuni.cz', '.*wiki.*', '1:20:00', ['UNI', 'WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04' ),
-  //   new Record(7, 'Wiki2', 'https://cs.wikipedia.org', '*.wiki.*', '00:24:00', ['WIKI'], new Date('2017-07-21T17:32:28Z'), '362:05:04'),
-  //   new Record(8, 'test2', 'https://a.b.cz', '*aaa*', '00:00:30', ['UNI'], new Date('2017-07-21T17:32:28Z'), '362:05:04')
-  // ]
-  // const [records, setRecords] = useState<Record[]>(recordsDummy)
+
   const [records, setRecords] = useState<Record[]>([])
-  const [links, setLinks] = useState<LinkObject[]>([])
-  const [nodes, setNodes] = useState<NodeObject[]>([])
+  const [activeRecordIds, setActiveRecordIds] = useState<number[]>([])
+  const [allCrawls, setAllCrawls] = useState<CrawledWeb[]>([])
+  const [allLinks, setAllLinks] = useState<LinkObject[]>([])
   const [change, setChange] = useState<boolean>(false)
   const [tags, setTags] = useState<string[]>([])
   const [editingRecord, setEditingRecord] = useState<Record|null>(null)
-  const [domainView, setDomainView] = useState<boolean>(true)
+  const [domainView, setDomainView] = useState<boolean>(false)
   const [selectedNode, setSelectedNode] = useState<NodeObject|null>(null)
+  const [liveMode, setLiveMode] = useState<boolean>(false)
+  const liveIntervalMs = 5000
 
   useEffect(() => {
-    fetchRecords().then(data => {
-      setRecords(data)
-    })
-    // fetchLinks().then(data =>{
-    //   setLinks(data)
-    // })
-    fetchTags().then(data => {
-      setTags(data)
-    })
-    fetchCrawls().then(data => {
-      const allNodes = data.map<NodeObject>(crawl => {
-        return{
+    const fetchAll = async () => {
+      
+      const [recordsData, linksData, tagsData, crawlsData] = await Promise.all([
+        fetchRecords(),
+        fetchLinks(),
+        fetchTags(),
+        fetchCrawls()
+      ])
+
+
+      setRecords(recordsData)
+      setAllLinks(linksData)
+      setTags(tagsData)
+      setAllCrawls(crawlsData)
+    }
+    fetchAll()
+    let interval: number | null = null;
+
+    if (liveMode) {
+      interval = window.setInterval(fetchAll, liveIntervalMs);
+    }
+
+    return () => {
+      if (interval !== null) {
+        clearInterval(interval);
+      }
+    };
+  }, [change, liveMode]);
+
+
+  type NodesDomainMapping = {processedNodes: NodeObject[], webToDomain: {[key: number]: string}}
+
+  const {processedNodes, webToDomain}: NodesDomainMapping = useMemo(processNodes, [allCrawls, domainView, change])
+  const processedLinks = useMemo(processLinks, [allLinks, domainView, change])
+  
+  
+  
+  const handleViewChange = (value: boolean) =>{
+    setDomainView(value)
+    setChange(prevState => !prevState)
+  }
+  const handleLiveModeChange = (value: boolean) =>{
+    setLiveMode(value)
+  }
+
+  function processNodes() : NodesDomainMapping {
+    if (allCrawls.length === 0) return {processedNodes: [], webToDomain: {}}
+    const activeRecordExecs = getExecutionIds(activeRecordIds)
+    const activeCrawls = filterCrawlsByExecutionIds(allCrawls, activeRecordExecs)
+    if (!domainView){
+
+      return {
+        processedNodes: activeCrawls.map(crawl => ({
           id: crawl.id,
-          label: crawl.title.substring(0, 20),
+          label: crawl.state != crawl.title ? crawl.title.substring(0, 20) : crawl.url.substring(0, 20),
+          title: crawl.state != crawl.title ? crawl.title : null,
           url: crawl.url,
           executionId: crawl.executionId,
           color: 'darkgreen',
           state: crawl.state,
-          crawlTime: crawl.crawlTime
-        }
-      })
-
-      if (domainView){ // get nodes with the same domain to one node
-        let domains:string[] = []
-        const domainRegex:RegExp = /:\/\/(.[^\/])*\//
-        let domainNodes:NodeObject[] = []
-
-        let webToDomainId:{[key: number]: number} = []
-
-        allNodes.forEach(node => {
-          const match = node.url.match(domainRegex)
-          if (match){
-              const domain = match[0].slice(3, match[0].length)
-              
-              if (!domains.includes(domain)){
-                domains.push(domain)
-                node.label = domain
-                domainNodes.push(node)
-                webToDomainId[node.id as number] = node.id as number
-              }
-              else{
-                const foundNode = domainNodes.find(node => {
-                  const domainMatch = node.url.match(domainRegex)![0]
-                  return domainMatch.slice(3,domainMatch.length) === domain
-
-                })
-                webToDomainId[node.id as number] = foundNode!.id as number
-              }
-          }
-          
-        })
-        fetchLinks().then(data => {
-          setLinks(data.map<LinkObject>(link => {
-            return { 
-              source: webToDomainId[link.source as number], 
-              target: webToDomainId[link.target as number]} // change web id to domain id
-          }))
-        })
-        setNodes(domainNodes)
-      }else{
-        fetchLinks().then(data => {setLinks(data)})
-        setNodes(allNodes)  
+          crawlTime: crawl.crawlTime,
+        })),
+        webToDomain: {}
       }
-      
+    }
+    let domains:string[] = []
+    const domainRegex:RegExp = /:\/\/([^\/?#]+)/
+    let domainNodes:NodeObject[] = []
+
+    let webToDomain:{[key: number]: string} = {}
+
+    activeCrawls.forEach(crawl => {
+      const match = crawl.url.match(domainRegex)
+      if (!match) return // not a valid url
+      const domain = match[1]
+
+      const baseNode: NodeObject = {
+        id: domain,
+        label: domain,
+        url: crawl.url,
+        executionId: crawl.executionId,
+        color: 'darkgreen',
+        state: crawl.state,
+        crawlTime: crawl.crawlTime,
+      }
+
+      if (!domains.includes(domain)){
+        domains.push(domain)
+        domainNodes.push(baseNode)
+      }
+      webToDomain[crawl.id as number] = domain
     })
-  }, [change])
-  const handleViewChange = (event: ChangeEvent<HTMLInputElement>) =>{
-    
-    setDomainView(event.currentTarget.checked)
-    setChange(prevState => !prevState)
+    return {processedNodes: domainNodes, webToDomain: webToDomain}
+  }
+  function processLinks() : LinkObject[] {
+    const activeRecordExecs = getExecutionIds(activeRecordIds)
+
+    if (!domainView){ 
+      const filteredLinks = filterLinksByExecutionIds(allLinks, activeRecordExecs)
+      return filteredLinks.filter(link => link.source && link.target)
+    }
+
+    const loadedLinks = allLinks
+      .filter(link => webToDomain[link.source as number] && webToDomain[link.target as number]) // filter the loaded nodes
+    return  filterLinksByExecutionIds(loadedLinks, activeRecordExecs)
+      .map<LinkObject>(link => ({
+        source: webToDomain[link.source as number],
+        target: webToDomain[link.target as number]
+      }))
+  }
+  function filterCrawlsByExecutionIds(crawls: CrawledWeb[], execution_ids: number[]) : NodeObject[] {
+    return crawls.filter(crawl => execution_ids.includes(crawl.executionId))
+  }
+  function filterLinksByExecutionIds(links: LinkObject[], execution_ids: number[]) : LinkObject[] {
+    return links.filter(link => execution_ids.includes(allCrawls.find(crawl => crawl.id === link.source)?.executionId as number))
+  }
+  function getExecutionIds(record_ids: number[]) : number[] {
+    const activeRecords : Record[] = records.filter(record => record_ids.includes(record.id))
+    return activeRecords.map(record => record.crawledData?.executionId)
   }
 
+  function validateFormData(formData: FormData): boolean {
+      return formData.has('label') && formData.get('label')?.toString().length !== 0 &&
+      formData.has('url') && formData.get('url')?.toString().length !== 0 &&
+      formData.has('boundaryRegExp') && formData.get('boundaryRegExp')?.toString().length !== 0 &&
+      formData.has('periodicity') && formData.get('periodicity') !== '0:0:0'
+  }
+
+  async function onCreateSubmit(event: FormEvent) {
+      event.preventDefault()
+      const form = event.currentTarget as HTMLFormElement
+      const formData = new FormData(form)
+
+      formData.set('tags', JSON.stringify( tags ))
+      formData.set('active', 'true')
+
+      if (!validateFormData(formData)){
+        toast.error(`Please fill the label, url, boundary RegEx and periodicity`, {duration: 3250})
+        return
+      }
+
+      try{
+        const addedRecord = await createRecord(formData)
+
+        setChange(prevState => !prevState)
+        setLiveMode(true)
+        setActiveRecordIds(prev => [...prev, addedRecord.id])
+        toast.success(`Record ${addedRecord.label} created`)
+          
+      } catch (error){
+          toast.error(`Couldn't create a record`)
+      }
+  }
+  async function onEditSubmit(event: FormEvent) {
+      event.preventDefault()
+      const form = event.currentTarget as HTMLFormElement
+      const formData = new FormData(form)
+
+      formData.set('tags', JSON.stringify(tags))
+      formData.set('active', 'true')
+      if (editingRecord === null){
+        throw new Error("Editing record missing")
+      }
+      formData.set('id', editingRecord.id.toString())
+
+      try {
+          await editRecord(formData)
+          setChange(prevState => !prevState)
+          toast.success(`Record edited`)
+      } catch (error) {
+          toast.error(`Editing record wasn't successful`)
+      }
+
+  }
   return(
     <>
-      <CreateRecordDialog setChange={setChange}/>
-      <Records records={records} tags={tags} setEditingRecord={setEditingRecord} setChange={setChange}/>
-      {editingRecord && <><EditRecordDialog editingRecord={editingRecord} setChange={setChange}/> <button onClick={() => setEditingRecord(null)}>Close</button></>}
+      <Toaster />
+      <RecordDialog id='create-dialog' 
+        buttonLabel='Create a Record' 
+        onSubmit={onCreateSubmit} 
+      />
+      <Records 
+        records={records} 
+        activeRecordIds={activeRecordIds} 
+        setActiveRecordIds={setActiveRecordIds} 
+        tags={tags} 
+        setEditingRecord={setEditingRecord} 
+        setChange={setChange}
+      />
+      {editingRecord && 
+      <RecordDialog id='edit-dialog' 
+        onSubmit={onEditSubmit} 
+        editingRecord={editingRecord} 
+        emptyEditingRecord={() => setEditingRecord(null)}
+      />}
       
       <hr />
-      <span>View: </span>
-      <label htmlFor="domain-radio">domain
-        
-      <input type="radio" name='graph-visual' checked={domainView} onChange={handleViewChange} id='domain-radio'/>
-      </label>
-      <label htmlFor="web-radio">web
-        <input type="radio" name='graph-visual' id='web-radio'/>
-      </label>
+
+      <ToggleSwitch switchLabel='Mode' labelOn='Live' labelOff='Static' checked={liveMode} onChange={handleLiveModeChange}/>
+    
+      <ToggleSwitch switchLabel='View' labelOn='Domain' labelOff='Web' checked={domainView} onChange={handleViewChange} />
+      
       <div id='graph'>
-        {selectedNode && <><CrawledDetail node={selectedNode} setNode={setSelectedNode}/> </>}
-        <ForceGraph 
-          graphData={{nodes: nodes, links: links}} 
-          width={750}
-          backgroundColor='lightblue'
-          nodeAutoColorBy={(node) => node.state}
-          nodeLabel={(node) => node.url}
-          
-          nodeCanvasObject={(node, ctx, globalScale) => {
-            const label:string = node.label;
-            const fontSize = 12/globalScale;
-            ctx.font = `${fontSize}px Sans-Serif`;
-            const textWidth = ctx.measureText(label).width;
-            const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
-
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            // ctx.fillStyle = node.color;
-            if (node.state === 'SEARCHED'){
-              ctx.fillStyle = node.color;
-            }
-            else{
-              ctx.fillStyle = 'darkred'
-            }
-            ctx.fillText(label, node.x!, node.y!);
-
-            node.__bckgDimensions = bckgDimensions; 
-          }}
-          nodePointerAreaPaint={(node, color, ctx) => {
-            
-            ctx.fillStyle = color;
-            const bckgDimensions = node.__bckgDimensions;
-            bckgDimensions && ctx.fillRect(node.x! - bckgDimensions[0] / 2, node.y! - bckgDimensions[1] / 2, bckgDimensions[0], bckgDimensions[1]);
-          }}
-          onNodeClick={(node, event) => {
-            setSelectedNode(node)
-          }}
-          linkDirectionalArrowRelPos={1}
-          linkDirectionalArrowLength={5}
-          linkWidth={3}
-          
-          
+        <Graph 
+          nodes={processedNodes} 
+          links={processedLinks} 
+          selectedNode={selectedNode}
+          setSelectedNode={setSelectedNode} 
         />
       </div>
       <hr />
       </>
   )
+
 }

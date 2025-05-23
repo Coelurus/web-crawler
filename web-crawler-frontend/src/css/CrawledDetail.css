@@ -1,14 +1,22 @@
 #crawled-detail{
-    position: fixed;
+    position: absolute;
     max-width: 250px;
     background-color: blanchedalmond;
     z-index: 99999;
     border-radius: 1em;
+    margin: 1em;
+    padding: 1em;
+    overflow-wrap: break-word;
 }
-#crawled-detail span{
-    overflow: scroll;
-}
-#website-list{
+#records-list{
     max-height: 100px;
     overflow: scroll;
+    overflow-x: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  #crawled-detail {
+    color: #213547;
+    background-color: blanchedalmond;
+  }
 }

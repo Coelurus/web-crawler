@@ -26,7 +26,7 @@ public class WebsiteRecordAPIController {
      */
     @GetMapping(value = "/websites")
     public ResponseEntity<List<WebsiteRecord>> getRecords() {
-        return websiteRecordService.getRecords();
+        return ResponseEntity.ok(websiteRecordService.getRecords());
     }
 
     /**
@@ -47,7 +47,7 @@ public class WebsiteRecordAPIController {
                                                    @RequestParam(name = "periodicity") String periodicity,
                                                    @RequestParam(name = "active") Boolean active,
                                                    @RequestParam(name = "tags", required = false) String tags) {
-        return websiteRecordService.addRecord(label, url, boundaryRegExp, periodicity, active, tags);
+        return ResponseEntity.ok(websiteRecordService.addRecord(label, url, boundaryRegExp, periodicity, active, tags));
     }
 
     /**
@@ -58,7 +58,7 @@ public class WebsiteRecordAPIController {
      */
     @GetMapping(value = "/websites/{id}")
     public ResponseEntity<WebsiteRecord> getRecord(@PathVariable Long id) {
-        return websiteRecordService.getRecord(id);
+        return ResponseEntity.ok(websiteRecordService.getRecord(id));
     }
 
     /**
@@ -87,6 +87,12 @@ public class WebsiteRecordAPIController {
      */
     @DeleteMapping(value = "/websites/{id}")
     public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
-        return websiteRecordService.deleteRecord(id);
+        websiteRecordService.deleteRecord(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(value = "/websites/url")
+    public ResponseEntity<List<WebsiteRecord>> getRecordsCrawlingUrl(@RequestParam String query) {
+        return ResponseEntity.ok(websiteRecordService.getRecordsCrawlingUrl(query));
     }
 }
