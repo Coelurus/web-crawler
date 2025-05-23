@@ -2,6 +2,7 @@ import Record from '../data-classes/Record'
 import '../css/table.css'
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import { deleteRecord, editRecord } from '../data-service'
+import toast from 'react-hot-toast'
 
 type RecordsTableProps = {
     records:Array<Record>, 
@@ -51,8 +52,13 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     }
 
     async function deleteRecordFromTable(recordId: number){
-        await deleteRecord(recordId)
-        setChange(prevState => !prevState)
+        try {
+            await deleteRecord(recordId)
+            setChange(prevState => !prevState)
+        }
+        catch {
+            toast.error("Failed to delete a record")
+        }
     } 
 
     function inActiveSelection(recordId: number){
@@ -80,7 +86,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
             setChange(prev => !prev)
         }
         catch (error){
-            console.error('Failed to update active status', error)
+            toast.error('Failed to update active status')
         }
     }
 
