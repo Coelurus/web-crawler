@@ -20,15 +20,15 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     const [currentPage, setCurrentPage] = useState(1)
 
     
-    const searchRecords = records.filter(record => 
+    const filteredRecords = records.filter(record => 
         record.label.includes(searchLabel) && 
         record.url.includes(searchUrl) && 
         (record.tags.map<string>(tag=>tag.name).some(tag => {
             return searchTags.includes(tag)
         }) || searchTags.length === 0)
     )
-    const currentItems = searchRecords.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
-    const totalPages = calcPageCount(itemsPerPage, searchRecords.length)
+    const currentItems = filteredRecords.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
+    const totalPages = calcPageCount(itemsPerPage, filteredRecords.length)
 
     useEffect(() => {
         if (currentPage > totalPages) {
@@ -43,7 +43,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
 
     function changeActiveRecord(recordId: number){
         if (inActiveSelection(recordId)) {
-            setActiveRecordIds(prev => prev.filter(record_id_item => record_id_item !== recordId))
+            setActiveRecordIds(prev => prev.filter(recordIdItem => recordIdItem !== recordId))
         }
         else { 
             setActiveRecordIds(prev => [...prev, recordId]) 
@@ -53,40 +53,52 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
 
     async function deleteRecordFromTable(recordId: number){
         try {
-            await deleteRecord(recordId)
+            const deletePromise = deleteRecord(recordId)
+            toast.promise(deletePromise, {
+                loading: 'Loading...',
+                success: 'Record deleted!',
+                error: 'Failed to delete a record'
+            })
+            await deletePromise
             setChange(prevState => !prevState)
         }
-        catch {
-            toast.error("Failed to delete a record")
+        catch (error) {
+            console.error(error)
         }
     } 
 
     function inActiveSelection(recordId: number){
         return activeRecordIds.includes(recordId)
     }
-    const executionTime = useMemo(() => {}, [])
-    function duration(startTime: Date, endTime: Date) : string {
-        
-        if (endTime === null){
-            endTime = new Date()
-        }
-        const timeOfExecMilliseconds: number = endTime.getTime() - startTime.getTime()
-        
-        const minutes = Math.floor(timeOfExecMilliseconds / (1000 * 60))
-        const seconds = Math.floor((timeOfExecMilliseconds % (1000 * 60)) / 1000)
-        
-        return `${minutes}m ${seconds}s`
-        
+
+    function duration(start: Date, end?: Date): string {
+        const startTime = new Date(start);
+        const endTime = end ? new Date(end) : new Date();
+
+        const diffMs = endTime.getTime() - startTime.getTime();
+
+        if (diffMs < 0) return "0m 0s"; 
+
+        const minutes = Math.floor(diffMs / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+        return `${minutes}m ${seconds}s`;
     }
 
     async function toggleActive(record: Record, newValue: boolean){
         record.active = newValue
         try{
-            await editRecord(record)
+            const editPromise = editRecord(record)
+            toast.promise(editPromise, {
+                loading: 'Loading...',
+                success: "Record's active status changed!",
+                error: 'Failed to change the active status'
+            })
+            await editPromise
             setChange(prev => !prev)
         }
         catch (error){
-            toast.error('Failed to update active status')
+            console.error(error)
         }
     }
 
@@ -115,7 +127,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                                 <span key={tag.id} className='tag'>{tag.name}</span>
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
-                            <td>{record.lastExecution && (record.lastExecution.endTime && (duration(record.lastExecution.startTime, record.lastExecution.endTime)))}</td>
+                            <td>{record.lastExecution?.startTime && duration(record.lastExecution.startTime, record.lastExecution.endTime)}</td>
                             <td>{record.lastExecution && record.lastExecution.startTime.toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
                             <td>{record.lastExecution && record.lastExecution.status}</td>
                             <td><input type="checkbox" name="" id={'active-select-' + record.id} checked={inActiveSelection(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>

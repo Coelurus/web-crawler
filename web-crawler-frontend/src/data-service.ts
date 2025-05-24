@@ -12,15 +12,26 @@ export async function fetchRecords(): Promise<Record[]> {
 
     await Promise.all(records.map(async (record) => {
         if (record.crawledData !== null) {
-            const response = await fetch("/api/executions/" + record.crawledData.executionId)
-            const execution: Execution = await response.json()
-            execution.startTime = new Date(execution.startTime)
-            execution.endTime = new Date(execution.endTime)
-            record.lastExecution = execution
+            record.lastExecution = await fetchExecution(record.crawledData.executionId)
         }
     }))
     return records
 }
+
+export async function fetchExecution(executionId: number) : Promise<Execution>{
+    const response = await fetch("/api/executions/" + executionId)
+    if (!response.ok){
+        throw new Error("Error occurred while fetching execution")
+    }
+    const execution: Execution = await response.json()
+    execution.startTime = new Date(execution.startTime)
+    if (execution.endTime != null) {
+        execution.endTime = new Date(execution.endTime);
+    }
+
+    return execution
+}
+
 export async function fetchTags(): Promise<string[]> {
     const response = await fetch("/api/tags")
     if (!response.ok){

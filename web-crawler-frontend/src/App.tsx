@@ -170,15 +170,20 @@ export default function App() {
       }
 
       try{
-        const addedRecord = await createRecord(formData)
+        const createPromise = createRecord(formData)
+        toast.promise(createPromise, {
+          loading: 'Loading...',
+          success: 'Record created!',
+          error: "Couldn't create a record"
+        })
+        const addedRecord = await createPromise
 
         setChange(prevState => !prevState)
         setLiveMode(true)
         setActiveRecordIds(prev => [...prev, addedRecord.id])
-        toast.success(`Record ${addedRecord.label} created`)
           
       } catch (error){
-          toast.error(`Couldn't create a record`)
+          console.error(error)
       }
   }
   async function onEditSubmit(event: FormEvent) {
@@ -194,11 +199,17 @@ export default function App() {
       formData.set('id', editingRecord.id.toString())
 
       try {
-          await editRecord(formData)
+          const editPromise = editRecord(formData)
+          toast.promise(editPromise, {
+            loading: 'Loading...',
+            success: 'Record edited!',
+            error: 'Failed to edit a record'
+          })
+          await editPromise
           setChange(prevState => !prevState)
-          toast.success(`Record edited`)
+          
       } catch (error) {
-          toast.error(`Editing record wasn't successful`)
+          console.error(error)
       }
 
   }
