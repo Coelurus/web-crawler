@@ -230,8 +230,8 @@ paths:
     post:
       tags:
         - executions
-      summary: Deactive periodical executions
-      description: Deactive periodical execution for a given website record.
+      summary: Deactivate periodical executions
+      description: Deactivate periodical execution for a given website record.
       parameters:
         - in: path
           name: wr_id
@@ -473,7 +473,7 @@ components:
         id:
           type: integer
           format: int64
-          description: Unique identifier for the peridicity
+          description: Unique identifier for the periodicity
           example: 3
         minute:
           type: integer
@@ -514,9 +514,9 @@ components:
           example: 1
         status:
           type: string
-          enum: [pending, in_progress, finished, failed]
+          enum: [PENDING, STARTED, FINISHED, FAILED]
           description: Status of the execution
-          example: finished
+          example: FINISHED
         startTime:
           type: string
           format: date-time
@@ -572,7 +572,7 @@ components:
           enum: [SEARCHED, TO BE SEARCHED, NOT MATCHED, INACCESSIBLE]
 
     CrawlLink:
-      description: oriented edge between two crawled websites created by existinge <a> element
+      description: oriented edge between two crawled websites created by existing <a> element
       required:
         - id
         - from_id
