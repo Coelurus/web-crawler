@@ -1,11 +1,9 @@
 
-import { ChangeEvent, Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from 'react'
 
 import RecordsHeader from './RecordsHeader'
 import RecordsTable from './RecordsTable'
 import Record from '../data-classes/Record'
-import toast from 'react-hot-toast'
-import { createRecord } from '../data-service'
 
 
 type RecordsProps = {
@@ -14,10 +12,10 @@ type RecordsProps = {
   setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
   tags:string[], 
   setEditingRecord:Dispatch<SetStateAction<Record|null>>, 
-  setChange:Dispatch<SetStateAction<boolean>>
+  reloadData(): void
 }
 
-export default function Records({records, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, setChange}: RecordsProps)
+export default function Records({records, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, reloadData}: RecordsProps)
 {
 
   const [url, setUrl] = useState('')
@@ -75,7 +73,7 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
         searchUrl={url}
         searchTags={selectedTags}
         setEditingRecord={setEditingRecord}
-        setChange={setChange}
+        reloadData={reloadData}
       />
 
     </>

@@ -159,8 +159,7 @@ export default function App() {
         const createPromise = createRecord(formData)
         toast.promise(createPromise, {
           loading: 'Loading...',
-          success: 'Record created!',
-          error: "Couldn't create a record"
+          success: 'Record created!'
         })
         const addedRecord = await createPromise
 
@@ -169,26 +168,10 @@ export default function App() {
         setActiveRecordIds(prev => [...prev, addedRecord.id])
         console.log(addedRecord)
       } catch (error){
-          console.error(error)
+          toast.error("Couldn't create a record")
       }
   }
-  function createUpdatedRecord(formData: FormData, oldRecord: Record): Record{
-    const id : number = Number(formData.get('id')?.toString()) ?? oldRecord.id
-    const newPeriodicity = formData.get('periodicity')?.toString().split(':').reverse().map(item => Number(item))
-    const updatedPeriodicity = newPeriodicity ? new PeriodicityTime(oldRecord.periodicity.id, newPeriodicity[0], newPeriodicity[1], newPeriodicity[2]) : oldRecord.periodicity
-    const newTags: string[] = JSON.parse(formData.get('tags')?.toString() ?? "")
-    const updatedTags: Tag[] = newTags.map(tag => new Tag(-1, tag, -1))
-    return new Record(
-      id, 
-      formData.get('label')?.toString() ?? oldRecord.label, 
-      formData.get('url')?.toString() ?? oldRecord.url, 
-      formData.get('boundaryRegExp')?.toString() ?? oldRecord.boundaryRegExp, 
-      updatedPeriodicity, 
-      Boolean(formData.get('active')?.toString()) ?? oldRecord.active,
-      updatedTags,
-      oldRecord.crawledData
-    )
-  }
+
   async function onEditSubmit(event: FormEvent) {
       const form = event.currentTarget as HTMLFormElement
       const formData = new FormData(form)
@@ -197,17 +180,17 @@ export default function App() {
           const editPromise = editRecord(formData)
           toast.promise(editPromise, {
             loading: 'Loading...',
-            success: 'Record edited!',
-            error: 'Failed to edit a record'
+            success: 'Record edited!'
           })
-          await editPromise
-          const editedRecordId: number = Number(formData.get('id')?.toString())
-          const editedRecord = createUpdatedRecord(formData, records.find(record => record.id === editedRecordId)!)
-          setChange(prevState => !prevState)
-          setRecords(prev => [...prev.map<Record>(record => record.id === editedRecord.id ? editedRecord : record)])
+          const editedRecord = await editPromise
+          
+          setRecords(prev => {
+            const updatedRecords = prev.map<Record>(record => record.id === editedRecord.id ? editedRecord : record)
+            return [...updatedRecords]
+          })
           
       } catch (error) {
-          console.error(error)
+          toast.error('Failed to edit a record')
       }
 
   }
@@ -225,7 +208,7 @@ export default function App() {
         setActiveRecordIds={setActiveRecordIds} 
         tags={tags} 
         setEditingRecord={setEditingRecord} 
-        setChange={setChange}
+        reloadData={() => setChange(prev => !prev)}
       />
       {editingRecord && 
       <RecordDialog id='edit-dialog' 

@@ -4,11 +4,11 @@ import Record from "./data-classes/Record";
 import CrawledWeb from "./data-classes/CrawledWeb";
 
 export async function fetchRecords(): Promise<Record[]> {
-    const responseWebsites = await fetch("/api/websites")
-    if (!responseWebsites.ok){
+    const responseRecords = await fetch("/api/websites")
+    if (!responseRecords.ok){
         throw new Error("Error occurred while fetching records")
     }
-    const records: Record[] = await responseWebsites.json()
+    const records: Record[] = await responseRecords.json()
 
     await Promise.all(records.map(async (record) => {
         if (record.crawledData !== null) {
@@ -98,10 +98,14 @@ export async function createRecord(formData: FormData) : Promise<Record>{
     if (!response.ok){
         throw new Error("Error occurred while trying to create a record")
     }
-    return await response.json()
+    const record = await response.json()
+    if (record.crawledData !== null) {
+        record.lastExecution = await fetchExecution(record.crawledData.executionId)
+    }
+    return record
 }
 
-export async function editRecord(editedRecord:Record|FormData){
+export async function editRecord(editedRecord:Record|FormData) : Promise<Record> {
     const formData: FormData = editedRecord instanceof FormData ? editedRecord : new FormData()
     
     // editedRecord is a Record
@@ -126,6 +130,11 @@ export async function editRecord(editedRecord:Record|FormData){
     if (!response.ok){
         throw new Error("Error occurred while editing record")
     }
+    const record = await response.json()
+    if (record.crawledData !== null) {
+        record.lastExecution = await fetchExecution(record.crawledData.executionId)
+    }
+    return record
 }
 
 export async function deleteRecord(id: number) {

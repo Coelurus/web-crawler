@@ -3,6 +3,7 @@ import '../css/table.css'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { deleteRecord, editRecord, fetchExecution } from '../data-service'
 import toast from 'react-hot-toast'
+import Execution from '../data-classes/Execution'
 
 type RecordsTableProps = {
     records:Array<Record>, 
@@ -13,12 +14,13 @@ type RecordsTableProps = {
     searchUrl:string, 
     searchTags:string[], 
     setEditingRecord:Dispatch<SetStateAction<Record|null>>, 
-    setChange:Dispatch<SetStateAction<boolean>>
+    reloadData(): void
 }
 
-export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
+export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, searchLabel, searchUrl, searchTags, setEditingRecord, reloadData}: RecordsTableProps){
     const [currentPage, setCurrentPage] = useState(1)
-    const [elapsedMs, setElapsedMs] = useState<{[key: string]: number}>({})
+    const [executions, setExecutions] = useState<{[key: string]: Execution}>({})
+
     const durationRefreshIntervalMs = 1000
 
     const filteredRecords = records.filter(record => 
@@ -39,16 +41,18 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         }
     }, [currentPage, totalPages]);
 
+    // sets intervals for fetching the executions of the unfinished executions
     useEffect(() => {
         const intervals: {[key: string]: number} = {}
         records.forEach(record => {
-            addElapsedMs(record)
-            if (record.lastExecution?.status === 'STARTED' || elapsedMs.length === 0){
+            addExecution(record)
+            if (record.lastExecution?.status === 'STARTED'){
                 intervals[record.id] = window.setInterval(() => {
                     if (record.lastExecution?.status !== 'STARTED') {
                        clearInterval(intervals[record.id]);
+                    } else{
+                        addExecution(record)
                     }
-                    addElapsedMs(record)
                 }, durationRefreshIntervalMs)
             }
         })
@@ -57,27 +61,17 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         }
     }, [records])
    
-    function addElapsedMs(record: Record){
-        setElapsedMs(prev => {
+    async function addExecution(record: Record) {
+        let execution: Execution|undefined = record.lastExecution
+        if (record.lastExecution && !record.lastExecution.endTime){
+                execution = await fetchExecution(record.lastExecution.id)
+        }
+        
+        setExecutions(prev => {
             if (record.lastExecution){
-                let duration = durationMs(
-                        record.lastExecution.startTime, 
-                        record.lastExecution.endTime)
-                if (!record.lastExecution.endTime){
-                    const fetchUpdatedExecution = async () => {
-                        if (record.lastExecution){
-                            const updatedExecution = await fetchExecution(record.lastExecution.id)
-                            duration = durationMs(
-                                updatedExecution.startTime,
-                                updatedExecution.endTime
-                            )
-                        }
-                    }
-                    fetchUpdatedExecution()
-                }
                 return { 
                     ...prev, 
-                    [record.id]: duration
+                    [record.id]: execution
                 }
             }
             return prev
@@ -95,7 +89,7 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         else { 
             setActiveRecordIds(prev => [...prev, recordId]) 
         }
-        setChange(prevState => !prevState)
+        reloadData()
     }
 
     async function deleteRecordFromTable(recordId: number){
@@ -103,14 +97,13 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
             const deletePromise = deleteRecord(recordId)
             toast.promise(deletePromise, {
                 loading: 'Loading...',
-                success: 'Record deleted!',
-                error: 'Failed to delete a record'
+                success: 'Record deleted!'
             })
             await deletePromise
-            setChange(prevState => !prevState)
+            reloadData()
         }
         catch (error) {
-            console.error(error)
+            toast.error('Failed to delete a record')
         }
     } 
 
@@ -130,20 +123,18 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
         return `${minutes}m ${seconds}s`;
     }
 
-    async function toggleActiveStatus(record: Record, newValue: boolean){
-        record.active = newValue
+    async function toggleActiveStatus(record: Record){
+        const editedRecord = { ...record, active: !record.active }
         try{
-            const editPromise = editRecord(record)
+            const editPromise = editRecord(editedRecord)
             toast.promise(editPromise, {
                 loading: 'Loading...',
-                success: "Record's active status changed!",
-                error: 'Failed to change the active status'
+                success: "Record's active status changed!"
             })
             await editPromise
-            setChange(prev => !prev)
         }
         catch (error){
-            console.error(error)
+            toast.error('Failed to change the active status')
         }
     }
 
@@ -172,11 +163,11 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                                 <span key={tag.id} className='tag'>{tag.name}</span>
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
-                            <td>{record.lastExecution?.startTime && formatDuration(elapsedMs[record.id])}</td>
-                            <td>{record.lastExecution && record.lastExecution.startTime.toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
-                            <td>{record.lastExecution && record.lastExecution.status}</td>
+                            <td>{executions[record.id] && formatDuration(durationMs(executions[record.id].startTime, executions[record.id].endTime))}</td>
+                            <td>{executions[record.id] && executions[record.id].startTime.toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
+                            <td>{executions[record.id] && executions[record.id].status}</td>
                             <td><input type="checkbox" name="" id={'active-select-' + record.id} checked={inActiveSelection(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>
-                            <td><input type="checkbox" checked={record.active} onChange={(e) => toggleActiveStatus(record, e.target.checked)}/></td>
+                            <td><input type="checkbox" checked={record.active} onChange={(e) => toggleActiveStatus(record)}/></td>
                             <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
                             <td><button onClick={() => deleteRecordFromTable(record.id)}>Delete</button></td>
                         </tr>
