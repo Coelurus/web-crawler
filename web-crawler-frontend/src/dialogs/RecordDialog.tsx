@@ -1,11 +1,12 @@
-import { ChangeEvent, FormEvent, useState } from "react"
+import { FormEvent, useState } from "react"
 import '../css/CreateDialog.css'
 import Record from "../data-classes/Record"
+import toast from "react-hot-toast"
 
 type RecordDialogProps = {
     id: string
     buttonLabel?: string
-    onSubmit: (event: FormEvent) => void
+    onSubmit: (event: FormEvent<HTMLFormElement>) => void
     editingRecord?: Record|null
     emptyEditingRecord?: () => void
 }
@@ -59,7 +60,15 @@ export default function CreateRecordDialog({id, onSubmit, editingRecord, buttonL
             emptyEditingRecord()
         }
     }
-    
+    function validateFormData(formEvent: FormEvent): boolean {
+        const formData = new FormData(formEvent.currentTarget as HTMLFormElement)
+
+        const result = formData.has('label') && formData.get('label')?.toString().length !== 0 &&
+            formData.has('url') && formData.get('url')?.toString().length !== 0 &&
+            formData.has('boundaryRegExp') && formData.get('boundaryRegExp')?.toString().length !== 0 &&
+            formData.has('periodicity') && formData.get('periodicity') !== '0:0:0'
+        return result
+    }
     return(
         <>
             {buttonLabel && <button onClick={toggleDialog} id={"toggle-dialog-"+id}>{buttonLabel}</button>}
@@ -68,9 +77,15 @@ export default function CreateRecordDialog({id, onSubmit, editingRecord, buttonL
                 {!editingRecord && <h2>Create Record</h2>}
                 {editingRecord && <h2>Edit Record {editingRecord.label}</h2>}
                 <form id={"dialog-form-"+id} className="dialog" onSubmit={(e) => {
-                    onSubmit(e)
-                    resetForm(e)
-                    toggleDialog()
+                        e.preventDefault()
+                        if (!validateFormData(e)){
+                            toast.error(`Please fill the label, url, boundary RegEx and periodicity`, {duration: 3250})
+                            return
+                        }
+                        onSubmit(e)
+                        resetForm(e)
+                        toggleDialog()
+                    
                     }}>
                     <label htmlFor={"label-"+id}>Label:
                         <input type="text" name="label" id={"label-"+id} defaultValue={editingRecord?.label}/>
@@ -104,6 +119,9 @@ export default function CreateRecordDialog({id, onSubmit, editingRecord, buttonL
                                 </li>
                         ))}
                     </div>
+                    <input type="hidden" name='tags' value={JSON.stringify(tags)} />
+                    <input type="hidden" name='active' value='true' />
+                    {editingRecord && <input type="hidden" name="id" value={editingRecord.id}/>}
                     <br />
                     <button type="submit" value="Submit" >Submit</button>
                     <button type="button" onClick={toggleDialog}>Close</button>

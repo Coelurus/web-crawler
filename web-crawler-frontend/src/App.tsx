@@ -7,7 +7,7 @@ import Record from './data-classes/Record'
 import RecordDialog from './dialogs/RecordDialog'
 import { createRecord, editRecord, fetchCrawls, fetchLinks, fetchRecords, fetchTags } from './data-service'
 import CrawledWeb from './data-classes/CrawledWeb'
-import { ToggleSwitch } from './utils/ToggleSwitch'
+import { ToggleSwitch } from './lib/ToggleSwitch'
 import toast, { Toaster } from 'react-hot-toast'
 import './css/CreateDialog.css'
 import './css/App.css'
@@ -122,6 +122,7 @@ export default function App() {
     })
     return {processedNodes: domainNodes, webToDomain: webToDomain}
   }
+
   function processLinks() : LinkObject[] {
     const activeRecordExecs = getExecutionIds(activeRecordIds)
 
@@ -149,25 +150,10 @@ export default function App() {
     return activeRecords.map(record => record.crawledData?.executionId)
   }
 
-  function validateFormData(formData: FormData): boolean {
-      return formData.has('label') && formData.get('label')?.toString().length !== 0 &&
-      formData.has('url') && formData.get('url')?.toString().length !== 0 &&
-      formData.has('boundaryRegExp') && formData.get('boundaryRegExp')?.toString().length !== 0 &&
-      formData.has('periodicity') && formData.get('periodicity') !== '0:0:0'
-  }
+
 
   async function onCreateSubmit(event: FormEvent) {
-      event.preventDefault()
-      const form = event.currentTarget as HTMLFormElement
-      const formData = new FormData(form)
-
-      formData.set('tags', JSON.stringify( tags ))
-      formData.set('active', 'true')
-
-      if (!validateFormData(formData)){
-        toast.error(`Please fill the label, url, boundary RegEx and periodicity`, {duration: 3250})
-        return
-      }
+      const formData = new FormData(event.currentTarget as HTMLFormElement)
 
       try{
         const createPromise = createRecord(formData)
@@ -187,16 +173,8 @@ export default function App() {
       }
   }
   async function onEditSubmit(event: FormEvent) {
-      event.preventDefault()
       const form = event.currentTarget as HTMLFormElement
       const formData = new FormData(form)
-
-      formData.set('tags', JSON.stringify(tags))
-      formData.set('active', 'true')
-      if (editingRecord === null){
-        throw new Error("Editing record missing")
-      }
-      formData.set('id', editingRecord.id.toString())
 
       try {
           const editPromise = editRecord(formData)
@@ -213,6 +191,7 @@ export default function App() {
       }
 
   }
+  
   return(
     <>
       <Toaster />
