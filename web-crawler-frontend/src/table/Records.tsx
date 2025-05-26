@@ -44,7 +44,7 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
       }
       const timeA = (a.lastExecution?.startTime ?? new Date(0)).getTime();
       const timeB = (b.lastExecution?.startTime ?? new Date(0)).getTime();
-      return timeA - timeB;
+      return timeB - timeA;
     });
   }, [records, sortByUrl]);
   
