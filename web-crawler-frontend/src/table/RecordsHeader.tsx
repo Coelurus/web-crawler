@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react";
-import { ToggleSwitch } from "../utils/ToggleSwitch";
+import { ToggleSwitch } from "../lib/ToggleSwitch";
 
 
 type RecordsHeaderProps = {
@@ -41,7 +41,7 @@ export default function RecordsHeader({ url, label, sortByUrl, tags, selectedTag
             </label>
             
         </div>
-        <ToggleSwitch switchLabel='Sort By' labelOff='URL' labelOn="Last Execution" checked={sortByUrl} onChange={onSortByUrlChange}/>
+        <ToggleSwitch switchLabel='Sort By' labelOff='Last Execution' labelOn="URL" checked={sortByUrl} onChange={onSortByUrlChange}/>
         
         </>
     )

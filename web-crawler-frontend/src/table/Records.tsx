@@ -23,7 +23,7 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
   const [url, setUrl] = useState('')
   const [label, setLabel] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [sortByUrl, setSortByUrl] = useState<boolean>(true) 
+  const [sortByUrl, setSortByUrl] = useState<boolean>(false) 
   
 
 
