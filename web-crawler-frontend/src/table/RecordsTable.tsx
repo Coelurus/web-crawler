@@ -1,7 +1,7 @@
 import Record from '../data-classes/Record'
 import '../css/table.css'
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
-import { deleteRecord, editRecord } from '../data-service'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { deleteRecord, editRecord, fetchExecution } from '../data-service'
 import toast from 'react-hot-toast'
 
 type RecordsTableProps = {
@@ -18,8 +18,9 @@ type RecordsTableProps = {
 
 export default function RecordsTable({records, activeRecordIds, setActiveRecordIds, itemsPerPage, searchLabel, searchUrl, searchTags, setEditingRecord, setChange}: RecordsTableProps){
     const [currentPage, setCurrentPage] = useState(1)
+    const [elapsedMs, setElapsedMs] = useState<{[key: string]: number}>({})
+    const durationRefreshIntervalMs = 1000
 
-    
     const filteredRecords = records.filter(record => 
         record.label.includes(searchLabel) && 
         record.url.includes(searchUrl) && 
@@ -29,13 +30,59 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     )
     const currentItems = filteredRecords.slice((currentPage-1)*itemsPerPage, currentPage*(itemsPerPage))
     const totalPages = calcPageCount(itemsPerPage, filteredRecords.length)
+    
+
 
     useEffect(() => {
         if (currentPage > totalPages) {
         setCurrentPage(1);
         }
     }, [currentPage, totalPages]);
+
+    useEffect(() => {
+        const intervals: {[key: string]: number} = {}
+        records.forEach(record => {
+            addElapsedMs(record)
+            if (record.lastExecution?.status === 'STARTED' || elapsedMs.length === 0){
+                intervals[record.id] = window.setInterval(() => {
+                    if (record.lastExecution?.status !== 'STARTED') {
+                       clearInterval(intervals[record.id]);
+                    }
+                    addElapsedMs(record)
+                }, durationRefreshIntervalMs)
+            }
+        })
+        return () => {
+            Object.values(intervals).forEach(clearInterval);
+        }
+    }, [records])
    
+    function addElapsedMs(record: Record){
+        setElapsedMs(prev => {
+            if (record.lastExecution){
+                let duration = durationMs(
+                        record.lastExecution.startTime, 
+                        record.lastExecution.endTime)
+                if (!record.lastExecution.endTime){
+                    const fetchUpdatedExecution = async () => {
+                        if (record.lastExecution){
+                            const updatedExecution = await fetchExecution(record.lastExecution.id)
+                            duration = durationMs(
+                                updatedExecution.startTime,
+                                updatedExecution.endTime
+                            )
+                        }
+                    }
+                    fetchUpdatedExecution()
+                }
+                return { 
+                    ...prev, 
+                    [record.id]: duration
+                }
+            }
+            return prev
+        })
+    }
     function calcPageCount(itemsPerPage:number, itemsCount:number): number{
         if (itemsCount%itemsPerPage === 0) return itemsCount/itemsPerPage
         return Math.floor(itemsCount/itemsPerPage)+1
@@ -70,22 +117,20 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
     function inActiveSelection(recordId: number){
         return activeRecordIds.includes(recordId)
     }
-
-    function duration(start: Date, end?: Date): string {
-        const startTime = new Date(start);
-        const endTime = end ? new Date(end) : new Date();
-
-        const diffMs = endTime.getTime() - startTime.getTime();
-
-        if (diffMs < 0) return "0m 0s"; 
-
-        const minutes = Math.floor(diffMs / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
+    function durationMs(start: Date, end?: Date): number {
+        const startDate = new Date(start);
+        const endDate = end ? new Date(end) : new Date();
+        const time = endDate.getTime() - startDate.getTime();
+        return time
+    }
+    function formatDuration(durationMs: number): string {
+        if (durationMs < 0) return "0m 0s"; 
+        const minutes = Math.floor(durationMs / (1000 * 60));
+        const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
         return `${minutes}m ${seconds}s`;
     }
 
-    async function toggleActive(record: Record, newValue: boolean){
+    async function toggleActiveStatus(record: Record, newValue: boolean){
         record.active = newValue
         try{
             const editPromise = editRecord(record)
@@ -127,11 +172,11 @@ export default function RecordsTable({records, activeRecordIds, setActiveRecordI
                                 <span key={tag.id} className='tag'>{tag.name}</span>
                             ))}</td>
                             <td>{record.periodicity.day}d {record.periodicity.hour}h {record.periodicity.minute}m</td>
-                            <td>{record.lastExecution?.startTime && duration(record.lastExecution.startTime, record.lastExecution.endTime)}</td>
+                            <td>{record.lastExecution?.startTime && formatDuration(elapsedMs[record.id])}</td>
                             <td>{record.lastExecution && record.lastExecution.startTime.toLocaleString('cs-CZ', {year: 'numeric',month: 'short',day: 'numeric',hour: '2-digit',minute: '2-digit'})}</td>
                             <td>{record.lastExecution && record.lastExecution.status}</td>
                             <td><input type="checkbox" name="" id={'active-select-' + record.id} checked={inActiveSelection(record.id)} onChange={() => changeActiveRecord(record.id)} /></td>
-                            <td><input type="checkbox" checked={record.active} onChange={(e) => toggleActive(record, e.target.checked)}/></td>
+                            <td><input type="checkbox" checked={record.active} onChange={(e) => toggleActiveStatus(record, e.target.checked)}/></td>
                             <td><button onClick={() => setEditingRecord(record)}>Edit</button></td>
                             <td><button onClick={() => deleteRecordFromTable(record.id)}>Delete</button></td>
                         </tr>

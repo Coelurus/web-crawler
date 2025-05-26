@@ -11,6 +11,8 @@ import { ToggleSwitch } from './lib/ToggleSwitch'
 import toast, { Toaster } from 'react-hot-toast'
 import './css/CreateDialog.css'
 import './css/App.css'
+import PeriodicityTime from './data-classes/PeriodicityTime'
+import Tag from './data-classes/Tag'
 
 
 export default function App() {
@@ -36,8 +38,6 @@ export default function App() {
         fetchTags(),
         fetchCrawls()
       ])
-
-
       setRecords(recordsData)
       setAllLinks(linksData)
       setTags(tagsData)
@@ -164,13 +164,30 @@ export default function App() {
         })
         const addedRecord = await createPromise
 
-        setChange(prevState => !prevState)
         setLiveMode(true)
+        setRecords(prev => [...prev, addedRecord])
         setActiveRecordIds(prev => [...prev, addedRecord.id])
-          
+        console.log(addedRecord)
       } catch (error){
           console.error(error)
       }
+  }
+  function createUpdatedRecord(formData: FormData, oldRecord: Record): Record{
+    const id : number = Number(formData.get('id')?.toString()) ?? oldRecord.id
+    const newPeriodicity = formData.get('periodicity')?.toString().split(':').reverse().map(item => Number(item))
+    const updatedPeriodicity = newPeriodicity ? new PeriodicityTime(oldRecord.periodicity.id, newPeriodicity[0], newPeriodicity[1], newPeriodicity[2]) : oldRecord.periodicity
+    const newTags: string[] = JSON.parse(formData.get('tags')?.toString() ?? "")
+    const updatedTags: Tag[] = newTags.map(tag => new Tag(-1, tag, -1))
+    return new Record(
+      id, 
+      formData.get('label')?.toString() ?? oldRecord.label, 
+      formData.get('url')?.toString() ?? oldRecord.url, 
+      formData.get('boundaryRegExp')?.toString() ?? oldRecord.boundaryRegExp, 
+      updatedPeriodicity, 
+      Boolean(formData.get('active')?.toString()) ?? oldRecord.active,
+      updatedTags,
+      oldRecord.crawledData
+    )
   }
   async function onEditSubmit(event: FormEvent) {
       const form = event.currentTarget as HTMLFormElement
@@ -184,7 +201,10 @@ export default function App() {
             error: 'Failed to edit a record'
           })
           await editPromise
+          const editedRecordId: number = Number(formData.get('id')?.toString())
+          const editedRecord = createUpdatedRecord(formData, records.find(record => record.id === editedRecordId)!)
           setChange(prevState => !prevState)
+          setRecords(prev => [...prev.map<Record>(record => record.id === editedRecord.id ? editedRecord : record)])
           
       } catch (error) {
           console.error(error)

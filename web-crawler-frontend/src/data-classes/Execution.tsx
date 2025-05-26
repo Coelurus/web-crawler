@@ -1,6 +1,6 @@
 import Record from "./Record"
 
-type Status = 'pending' | 'in_progress' | 'finished' | 'failed'
+type Status = 'PENDING' | 'STARTED' | 'FINISHED' | 'FAILED'
 
 export default class Execution{
     id:number

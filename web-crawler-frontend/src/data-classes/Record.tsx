@@ -13,7 +13,6 @@ export default class Record{
     tags:Array<Tag>
     crawledData:CrawledWeb
     lastExecution:Execution|undefined
-    timeOfExecution:string|undefined
     
 
     public constructor(id:number, label:string, url:string, boundaryRegEx:string, periodicity:PeriodicityTime, active:boolean, tags:Array<Tag>, crawledData:CrawledWeb){
