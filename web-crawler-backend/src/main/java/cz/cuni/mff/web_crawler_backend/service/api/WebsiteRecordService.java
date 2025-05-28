@@ -232,7 +232,6 @@ public class WebsiteRecordService {
         if (root != null) {
             crawlService.deleteAllCrawlDataByExecutionId(root.getExecutionId());
         }
-
         executionService.deleteExecutionsByWebsiteId(id);
     }
 

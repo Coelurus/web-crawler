@@ -5,6 +5,7 @@ import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
+import cz.cuni.mff.web_crawler_backend.service.crawler.CrawlerService;
 import cz.cuni.mff.web_crawler_backend.service.crawler.SchedulingConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +18,16 @@ public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final WebsiteRecordRepository websiteRecordRepository;
     private final SchedulingConfig schedulingConfig;
+    private final CrawlerService crawlerService;
 
     @Autowired
     public ExecutionService(ExecutionRepository executionRepository,
                             WebsiteRecordRepository websiteRecordRepository,
-                            SchedulingConfig schedulingConfig) {
+                            SchedulingConfig schedulingConfig, CrawlerService crawlerService) {
         this.executionRepository = executionRepository;
         this.websiteRecordRepository = websiteRecordRepository;
         this.schedulingConfig = schedulingConfig;
+        this.crawlerService = crawlerService;
     }
 
     /**
@@ -73,7 +76,7 @@ public class ExecutionService {
     }
 
     /**
-     * Deactivate periodical executions for a given website record if it is scheduled
+     * Deactivate running execution and future periodical executions for a given website record if it is scheduled
      *
      * @param wrId ID of website record to stop executions on
      * @return ok status
@@ -82,6 +85,7 @@ public class ExecutionService {
     public ResponseEntity<Void> deactivateExecution(Long wrId) {
         schedulingConfig.cancelCrawlingTask(wrId);
         websiteRecordRepository.setActivity(false, wrId);
+        crawlerService.stopExecution(wrId);
         return ResponseEntity.ok().build();
     }
 

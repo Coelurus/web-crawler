@@ -22,8 +22,10 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +40,8 @@ public class CrawlerService {
     private final WebsiteRecordRepository websiteRecordRepository;
     private final CrawlService crawlService;
     private final ExecutorService executorService;
+    private final Map<Long, AtomicBoolean> stopFlags = new ConcurrentHashMap<>();
+
     private final int MAX_CONCURRENT_REQUESTS = 16;
 
     @Autowired
@@ -55,17 +59,28 @@ public class CrawlerService {
     }
 
     /**
+     * Stop execution of a crawler by setting stop flag to true
+     *
+     * @param websiteRecordId ID of website record whose execution that should be stopped
+     */
+    public void stopExecution(Long websiteRecordId) {
+        stopFlags.computeIfAbsent(websiteRecordId, id -> new AtomicBoolean(false)).set(true);
+    }
+
+    /**
      * Go through page and find all links. Save them. And go through them. Rinse and repeat
      *
      * @param websiteRecordId ID of website record which is used to invoke the execution
      */
     public void startNewExecution(Long websiteRecordId) {
-
         WebsiteRecord websiteRecord =
                 websiteRecordRepository.findById(websiteRecordId).orElseThrow(() -> new NotFoundException("Website record"));
         // Create new execution
         Execution execution = new Execution(websiteRecord);
         executionRepository.save(execution);
+
+        // Initialize stop flag for this execution
+        stopFlags.put(websiteRecordId, new AtomicBoolean(false));
 
         // Create and add first website to crawl queue
         List<CrawlResult> queue = new ArrayList<>();
@@ -91,6 +106,10 @@ public class CrawlerService {
         } catch (Exception e) {
             executionRepository.updateStatusAndTime("FAILED", ZonedDateTime.now(), execution.getId());
         }
+        if (stopFlags.getOrDefault(execution.getWebsite().getId(), new AtomicBoolean(false)).get()) {
+            stopFlags.remove(websiteRecordId);
+            executionRepository.updateStatusAndTime("STOPPED", ZonedDateTime.now(), execution.getId());
+        }
 
     }
 
@@ -108,6 +127,10 @@ public class CrawlerService {
         List<Future<?>> futures = new ArrayList<>();
 
         while (!concurrentQueue.isEmpty() || activeTasks.get() > 0) {
+            if (stopFlags.getOrDefault(execution.getWebsite().getId(), new AtomicBoolean(false)).get()) {
+                return;
+            }
+
             CrawlResult crawlResult = concurrentQueue.poll();
             if (crawlResult == null) {
                 if (activeTasks.get() > 0) {
