@@ -2,13 +2,13 @@ START TRANSACTION;
 
 CREATE TABLE WebsiteRecords
 (
-    id            serial PRIMARY KEY,
+    id            bigserial PRIMARY KEY,
     label         varchar(255) NOT NULL,
     url           varchar(255) NOT NULL,
     regex         varchar(255) NOT NULL,
-    time_id       int          NOT NULL,
+    time_id       bigint       NOT NULL,
     active        boolean      NOT NULL,
-    result_record int
+    result_record bigint
 );
 
 ALTER TABLE WebsiteRecords

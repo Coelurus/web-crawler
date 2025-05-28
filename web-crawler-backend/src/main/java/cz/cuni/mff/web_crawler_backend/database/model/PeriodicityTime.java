@@ -42,7 +42,7 @@ public class PeriodicityTime {
 
     @Override
     public String toString() {
-        return String.format("%02d:%02d:%02d", day, hour, minute);
+        return String.format("%d:%d:%d", day, hour, minute);
     }
 
     /**
