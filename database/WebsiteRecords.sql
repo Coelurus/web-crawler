@@ -20,7 +20,7 @@ ALTER TABLE WebsiteRecords
 INSERT INTO WebsiteRecords (id, label, url, regex, time_id, active)
 VALUES (0, 'task',
         'https://webik.ms.mff.cuni.cz/nswi153/seminar-project/',
-        '.*uptime.*', 0, FALSE);
+        '.*webik.*', 0, FALSE);
 
 SELECT setval(pg_get_serial_sequence('WebsiteRecords', 'id'),
               (SELECT MAX(id) FROM WebsiteRecords) + 1);
