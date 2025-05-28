@@ -16,7 +16,15 @@ export default function CrawledDetail({
   useEffect(() => {
     const fetchRecords = async () => {
       if (node !== null) {
-        const recordsList = await fetchRecordsForCrawl(node.url);
+        let recordsList = [];
+        if (node.urls){
+          const records = (await Promise.all(node.urls.map((url: string) => fetchRecordsForCrawl(url)))).flat()
+          recordsList = removeDuplicateRecords(records)
+          
+        }
+        else {
+          recordsList = await fetchRecordsForCrawl(node.url)
+        }
         setRecordsList(recordsList);
       } else {
         setRecordsList([]);
@@ -29,6 +37,10 @@ export default function CrawledDetail({
     await runRecordExecution(recordId);
   }
 
+  function removeDuplicateRecords(records: Record[]){
+    return [... new Map(records.map(record => [record["id"], record])).values()]
+  }
+
   return (
     <>
       {node && (
@@ -36,7 +48,7 @@ export default function CrawledDetail({
           <h2>Crawl Detail</h2>
           {node.title && (
             <p>
-              <b>Title:</b> {node.title}{' '}
+              <b>Title:</b> {node.title}
             </p>
           )}
           <p>

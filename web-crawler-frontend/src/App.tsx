@@ -126,8 +126,8 @@ export default function App() {
       };
     }
     const domains: string[] = [];
-    const domainRegex: RegExp = /:\/\/([^?#]+)/;
-    const domainNodes: NodeObject[] = [];
+    const domainRegex: RegExp = /:\/\/([^\/?#]+)/;
+    const domainNodes: {[key: string]: NodeObject} = {}; // nodes by their domain
 
     const webToDomain: { [key: number]: string } = {};
 
@@ -135,24 +135,29 @@ export default function App() {
       const match = crawl.url.match(domainRegex);
       if (!match) return; // not a valid url
       const domain = match[1];
-
-      const baseNode: NodeObject = {
-        id: domain,
-        label: domain,
-        url: crawl.url,
-        executionId: crawl.executionId,
-        color: 'darkgreen',
-        state: crawl.state,
-        crawlTime: crawl.crawlTime,
-      };
-
+      
       if (!domains.includes(domain)) {
+        
+        const baseNode: NodeObject = {
+          id: domain,
+          label: domain,
+          url: domain,
+          urls: [],
+          executionId: crawl.executionId,
+          color: 'darkgreen',
+          state: crawl.state,
+          crawlTime: crawl.crawlTime,
+        };
+
         domains.push(domain);
-        domainNodes.push(baseNode);
+        domainNodes[domain] = baseNode;
       }
+      domainNodes[domain].urls.push(crawl.url)
+      
+
       webToDomain[crawl.id as number] = domain;
     });
-    return { processedNodes: domainNodes, webToDomain: webToDomain };
+    return { processedNodes: Object.values(domainNodes), webToDomain: webToDomain };
   }
 
   function processLinks(): LinkObject[] {
