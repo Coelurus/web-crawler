@@ -1,6 +1,5 @@
 package cz.cuni.mff.web_crawler_backend.error.exception;
 
-
 import lombok.Getter;
 
 @Getter
@@ -11,4 +10,3 @@ public class NotFoundException extends APIException {
         super(DEFAULT_CODE, field);
     }
 }
-

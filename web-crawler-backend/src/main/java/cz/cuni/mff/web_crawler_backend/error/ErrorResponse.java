@@ -1,8 +1,7 @@
 package cz.cuni.mff.web_crawler_backend.error;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class ErrorResponse {
@@ -11,5 +10,4 @@ public class ErrorResponse {
     public ErrorResponse(List<ErrorDetail> errors) {
         this.errors = errors;
     }
-
 }

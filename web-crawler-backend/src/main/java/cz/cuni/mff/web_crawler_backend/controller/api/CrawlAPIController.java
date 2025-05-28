@@ -3,14 +3,13 @@ package cz.cuni.mff.web_crawler_backend.controller.api;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlLink;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import cz.cuni.mff.web_crawler_backend.service.api.CrawlService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -27,9 +26,9 @@ public class CrawlAPIController {
         return crawlService.getAllCrawlResults();
     }
 
-
     @GetMapping("/crawl/data/{execution_id}")
-    public ResponseEntity<List<CrawlResult>> getCrawlResultsById(@PathVariable(name = "execution_id") Long executionId) {
+    public ResponseEntity<List<CrawlResult>> getCrawlResultsById(
+            @PathVariable(name = "execution_id") Long executionId) {
         return crawlService.getCrawlResultsById(executionId);
     }
 
@@ -38,10 +37,8 @@ public class CrawlAPIController {
         return crawlService.getAllCrawlLinks();
     }
 
-
     @GetMapping("/crawl/link/{execution_id}")
     public ResponseEntity<List<CrawlLink>> getCrawlLinksById(@PathVariable(name = "execution_id") Long executionId) {
         return crawlService.getCrawlLinksById(executionId);
     }
-
 }

@@ -2,9 +2,8 @@ package cz.cuni.mff.web_crawler_backend.database.model;
 
 import cz.cuni.mff.web_crawler_backend.error.exception.FieldValidationException;
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.util.Arrays;
+import lombok.Data;
 
 @Data
 @Entity

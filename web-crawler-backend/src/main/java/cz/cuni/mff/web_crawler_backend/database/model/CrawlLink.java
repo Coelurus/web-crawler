@@ -28,5 +28,4 @@ public class CrawlLink {
         this.to = to;
         this.executionId = executionId;
     }
-
 }

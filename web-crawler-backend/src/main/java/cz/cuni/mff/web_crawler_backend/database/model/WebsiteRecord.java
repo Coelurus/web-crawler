@@ -1,13 +1,10 @@
 package cz.cuni.mff.web_crawler_backend.database.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
 
 @Data
 @Entity
@@ -35,11 +32,7 @@ public class WebsiteRecord {
     private boolean active;
 
     @ManyToMany
-    @JoinTable(
-            name = "tags",
-            joinColumns = @JoinColumn(name = "wr_id"),
-            inverseJoinColumns = @JoinColumn(name = "id")
-    )
+    @JoinTable(name = "tags", joinColumns = @JoinColumn(name = "wr_id"), inverseJoinColumns = @JoinColumn(name = "id"))
     private List<Tag> tags;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -49,7 +42,6 @@ public class WebsiteRecord {
     @JsonIgnore
     @OneToMany(mappedBy = "website")
     private List<Execution> executions;
-
 
     public WebsiteRecord(String label, String url, String boundaryRegExp, PeriodicityTime periodicity, boolean active) {
         this.label = label;
@@ -61,7 +53,6 @@ public class WebsiteRecord {
     }
 
     public WebsiteRecord() {
-
     }
 
     public WebsiteRecord update(WebsiteRecord newWR) {

@@ -4,11 +4,10 @@ import cz.cuni.mff.web_crawler_backend.database.model.CrawlLink;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class CrawlService {

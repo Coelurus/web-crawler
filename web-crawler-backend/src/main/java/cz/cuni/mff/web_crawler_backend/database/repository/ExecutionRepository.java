@@ -1,16 +1,14 @@
 package cz.cuni.mff.web_crawler_backend.database.repository;
 
-
 import cz.cuni.mff.web_crawler_backend.database.model.Execution;
 import jakarta.transaction.Transactional;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ExecutionRepository extends JpaRepository<Execution, Long> {
@@ -31,5 +29,4 @@ public interface ExecutionRepository extends JpaRepository<Execution, Long> {
     @Transactional
     @Modifying
     void deleteByWebsiteId(Long websiteId);
-    
 }

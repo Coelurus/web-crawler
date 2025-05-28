@@ -11,5 +11,4 @@ public class ErrorDetail {
         this.code = code;
         this.scope = scope;
     }
-
 }

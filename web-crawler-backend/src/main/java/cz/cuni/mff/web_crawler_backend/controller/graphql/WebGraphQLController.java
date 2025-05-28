@@ -6,11 +6,10 @@ import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import cz.cuni.mff.web_crawler_backend.mapper.NodeMapper;
+import java.util.List;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-
-import java.util.List;
 
 @Controller
 public class WebGraphQLController {
@@ -19,7 +18,8 @@ public class WebGraphQLController {
     private final CrawlResultRepository crawlResultRepository;
     private final NodeMapper nodeMapper;
 
-    public WebGraphQLController(WebsiteRecordRepository websiteRecordRepository, CrawlResultRepository crawlResultRepository, NodeMapper nodeMapper) {
+    public WebGraphQLController(WebsiteRecordRepository websiteRecordRepository,
+            CrawlResultRepository crawlResultRepository, NodeMapper nodeMapper) {
         this.nodeMapper = nodeMapper;
         this.websiteRecordRepository = websiteRecordRepository;
         this.crawlResultRepository = crawlResultRepository;

@@ -10,8 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = "cz.cuni.mff.web_crawler_backend.database.model")
 public class WebCrawlerBackendApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(WebCrawlerBackendApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(WebCrawlerBackendApplication.class, args);
+    }
 }

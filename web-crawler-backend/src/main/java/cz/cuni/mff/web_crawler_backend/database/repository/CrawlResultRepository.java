@@ -2,12 +2,11 @@ package cz.cuni.mff.web_crawler_backend.database.repository;
 
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @Repository
 public interface CrawlResultRepository extends JpaRepository<CrawlResult, Long> {
@@ -29,5 +28,4 @@ public interface CrawlResultRepository extends JpaRepository<CrawlResult, Long> 
     List<CrawlResult> findAllByExecutionIdIn(List<Long> executionIds);
 
     List<CrawlResult> findCrawlResultsByUrl(String url);
-
 }
