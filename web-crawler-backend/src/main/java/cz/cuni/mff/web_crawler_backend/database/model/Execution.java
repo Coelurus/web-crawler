@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 @Table(name = "executions")
 public class Execution {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 

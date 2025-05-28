@@ -150,26 +150,23 @@ public class WebsiteRecordService {
             wr.setLabel(label);
         }
 
-        if (url != null) {
-            if (!url.equals(wr.getUrl())) {
-                deleteData = true;
-            }
+        if (url != null && !url.equals(wr.getUrl())) {
+            deleteData = true;
             wr.setUrl(url);
         }
 
-        if (boundaryRegExp != null) {
-            if (!boundaryRegExp.equals(wr.getBoundaryRegExp())) {
-                deleteData = true;
-            }
+
+        if (boundaryRegExp != null && !boundaryRegExp.equals(wr.getBoundaryRegExp())) {
+            deleteData = true;
             wr.setBoundaryRegExp(boundaryRegExp);
         }
 
-        if (periodicity != null) {
-            if (!periodicity.equals(wr.getPeriodicity().toString())) {
-                periodicityChanged = true;
-            }
+
+        if (periodicity != null && !periodicity.equals(wr.getPeriodicity().toString())) {
+            periodicityChanged = true;
             wr.setPeriodicity(new PeriodicityTime(periodicity));
         }
+
 
         List<String> tagsNames = List.of();
         if (tags != null) {
@@ -192,7 +189,7 @@ public class WebsiteRecordService {
             // Incoming activation
             if (active && !wr.isActive()) {
                 executionService.startExecution(wr.getId());
-                
+
             }
             // Was active
             else if (Boolean.FALSE.equals(active) && wr.isActive()) {
