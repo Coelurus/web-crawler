@@ -146,6 +146,7 @@ export default function RecordsTable({
         success: "Record's active status changed!",
       });
       await editPromise;
+      reloadData();
     } catch (error) {
       console.log(error);
       toast.error('Failed to change the active status');
