@@ -3,12 +3,11 @@ package cz.cuni.mff.web_crawler_backend.database.repository;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
 import jakarta.transaction.Transactional;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 @Repository
 public interface WebsiteRecordRepository extends JpaRepository<WebsiteRecord, Long> {

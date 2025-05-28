@@ -9,5 +9,4 @@ public class FieldValidationException extends APIException {
     public FieldValidationException(String field) {
         super(DEFAULT_CODE, field);
     }
-
 }

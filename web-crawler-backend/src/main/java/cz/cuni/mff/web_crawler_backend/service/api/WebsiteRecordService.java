@@ -13,19 +13,13 @@ import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordReposito
 import cz.cuni.mff.web_crawler_backend.error.exception.FieldValidationException;
 import cz.cuni.mff.web_crawler_backend.error.exception.InternalServerException;
 import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
-import org.json.JSONArray;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-
-
 import java.util.List;
-
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import java.util.Objects;
-
+import org.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class WebsiteRecordService {
@@ -39,11 +33,10 @@ public class WebsiteRecordService {
     private final ExecutionRepository executionRepository;
 
     @Autowired
-    public WebsiteRecordService(WebsiteRecordRepository websiteRecordRepository,
-                                TagRepository tagRepository,
-                                PeriodicityTimeRepository periodicityTimeRepository,
-                                ExecutionService executionService,
-                                CrawlService crawlService, CrawlResultRepository crawlResultRepository, ExecutionRepository executionRepository) {
+    public WebsiteRecordService(WebsiteRecordRepository websiteRecordRepository, TagRepository tagRepository,
+            PeriodicityTimeRepository periodicityTimeRepository, ExecutionService executionService,
+            CrawlService crawlService, CrawlResultRepository crawlResultRepository,
+            ExecutionRepository executionRepository) {
         this.websiteRecordRepository = websiteRecordRepository;
         this.tagRepository = tagRepository;
         this.periodicityTimeRepository = periodicityTimeRepository;
@@ -65,17 +58,24 @@ public class WebsiteRecordService {
     /**
      * Create new record and save it to db
      *
-     * @param label          User given label to new record
-     * @param url            Url where to start crawling
-     * @param boundaryRegExp Regexp used to match links
-     * @param periodicity    How often should the website be crawled
-     * @param active         Whether crawling should happen every period
-     * @param tags           User given tags to this record
+     * @param label
+     *            User given label to new record
+     * @param url
+     *            Url where to start crawling
+     * @param boundaryRegExp
+     *            Regexp used to match links
+     * @param periodicity
+     *            How often should the website be crawled
+     * @param active
+     *            Whether crawling should happen every period
+     * @param tags
+     *            User given tags to this record
      * @return Ok response with newly created object
-     * @throws FieldValidationException when user given invalid input for any field
+     * @throws FieldValidationException
+     *             when user given invalid input for any field
      */
-    public WebsiteRecord addRecord(String label, String url, String boundaryRegExp,
-                                   String periodicity, Boolean active, String tags) {
+    public WebsiteRecord addRecord(String label, String url, String boundaryRegExp, String periodicity, Boolean active,
+            String tags) {
 
         if (label == null || label.isBlank()) {
             throw new FieldValidationException("label");
@@ -99,7 +99,8 @@ public class WebsiteRecordService {
         periodicityTimeRepository.save(periodicityTime);
         try {
 
-            WebsiteRecord wr = websiteRecordRepository.save(new WebsiteRecord(label, url, boundaryRegExp, periodicityTime, active));
+            WebsiteRecord wr = websiteRecordRepository
+                    .save(new WebsiteRecord(label, url, boundaryRegExp, periodicityTime, active));
 
             if (tags != null) {
                 for (Object tag : new JSONArray(tags)) {
@@ -115,15 +116,16 @@ public class WebsiteRecordService {
         } catch (Exception e) {
             throw new InternalServerException(e.getMessage());
         }
-
     }
 
     /**
      * Get record from db by its id
      *
-     * @param id ID of record to be found
+     * @param id
+     *            ID of record to be found
      * @return Found record
-     * @throws NotFoundException when record with no such id exists
+     * @throws NotFoundException
+     *             when record with no such id exists
      */
     public WebsiteRecord getRecord(Long id) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
@@ -136,12 +138,14 @@ public class WebsiteRecordService {
     /**
      * Update existing record by id
      *
-     * @param id ID of record to update
+     * @param id
+     *            ID of record to update
      * @return ok response with updated object
      */
-    public WebsiteRecord updateRecord(Long id, String label, String url, String boundaryRegExp,
-                                      String periodicity, String tags, Boolean active) {
-        WebsiteRecord wr = websiteRecordRepository.findById(id).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+    public WebsiteRecord updateRecord(Long id, String label, String url, String boundaryRegExp, String periodicity,
+            String tags, Boolean active) {
+        WebsiteRecord wr = websiteRecordRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("WebsiteRecord"));
 
         boolean deleteData = false;
         boolean periodicityChanged = false;
@@ -155,18 +159,15 @@ public class WebsiteRecordService {
             wr.setUrl(url);
         }
 
-
         if (boundaryRegExp != null && !boundaryRegExp.equals(wr.getBoundaryRegExp())) {
             deleteData = true;
             wr.setBoundaryRegExp(boundaryRegExp);
         }
 
-
         if (periodicity != null && !periodicity.equals(wr.getPeriodicity().toString())) {
             periodicityChanged = true;
             wr.setPeriodicity(new PeriodicityTime(periodicity));
         }
-
 
         List<String> tagsNames = List.of();
         if (tags != null) {
@@ -213,7 +214,8 @@ public class WebsiteRecordService {
     /**
      * Delete record from db and all associated executions and crawl data
      *
-     * @param id ID of record to delete
+     * @param id
+     *            ID of record to delete
      */
     public void deleteRecord(Long id) {
         executionService.deactivateExecution(id);
@@ -222,12 +224,15 @@ public class WebsiteRecordService {
     }
 
     /**
-     * Delete all executions, crawl data and links that was created because of this website record
+     * Delete all executions, crawl data and links that was created because of this
+     * website record
      *
-     * @param id ID of website record whose data to delete
+     * @param id
+     *            ID of website record whose data to delete
      */
     private void deleteAssociatedData(Long id) {
-        WebsiteRecord toDelete = websiteRecordRepository.findById(id).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+        WebsiteRecord toDelete = websiteRecordRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("WebsiteRecord"));
         CrawlResult root = toDelete.getCrawledData();
         if (root != null) {
             crawlService.deleteAllCrawlDataByExecutionId(root.getExecutionId());
@@ -238,19 +243,18 @@ public class WebsiteRecordService {
     /**
      * Set new crawl root for website record
      *
-     * @param root New CrawlResult to set as root for website record
-     * @param id   ID of website record whose crawl result to set
+     * @param root
+     *            New CrawlResult to set as root for website record
+     * @param id
+     *            ID of website record whose crawl result to set
      */
     public void updateCrawledData(CrawlResult root, Long id) {
         websiteRecordRepository.updateCrawledData(root, id);
     }
 
     public List<WebsiteRecord> getRecordsCrawlingUrl(String url) {
-        return crawlResultRepository.findCrawlResultsByUrl(url).stream()
-                .map(CrawlResult::getExecutionId)
-                .distinct()
+        return crawlResultRepository.findCrawlResultsByUrl(url).stream().map(CrawlResult::getExecutionId).distinct()
                 .map(e -> executionRepository.findById(e).orElse(null)).filter(Objects::nonNull)
-                .map(Execution::getWebsite)
-                .toList();
+                .map(Execution::getWebsite).toList();
     }
 }

@@ -1,9 +1,8 @@
 package cz.cuni.mff.web_crawler_backend.database.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-
 import java.time.ZonedDateTime;
+import lombok.Data;
 
 @Data
 @Entity
@@ -44,6 +43,5 @@ public class Execution {
     }
 
     public Execution() {
-
     }
 }

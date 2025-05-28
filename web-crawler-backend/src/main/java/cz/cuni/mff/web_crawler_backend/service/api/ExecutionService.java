@@ -7,11 +7,10 @@ import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordReposito
 import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
 import cz.cuni.mff.web_crawler_backend.service.crawler.CrawlerService;
 import cz.cuni.mff.web_crawler_backend.service.crawler.SchedulingConfig;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class ExecutionService {
@@ -21,9 +20,8 @@ public class ExecutionService {
     private final CrawlerService crawlerService;
 
     @Autowired
-    public ExecutionService(ExecutionRepository executionRepository,
-                            WebsiteRecordRepository websiteRecordRepository,
-                            SchedulingConfig schedulingConfig, CrawlerService crawlerService) {
+    public ExecutionService(ExecutionRepository executionRepository, WebsiteRecordRepository websiteRecordRepository,
+            SchedulingConfig schedulingConfig, CrawlerService crawlerService) {
         this.executionRepository = executionRepository;
         this.websiteRecordRepository = websiteRecordRepository;
         this.schedulingConfig = schedulingConfig;
@@ -31,9 +29,12 @@ public class ExecutionService {
     }
 
     /**
-     * Returns all execution from database possibly filtered by ID of website record that executed them
+     * Returns all execution from database possibly filtered by ID of website record
+     * that executed them
      *
-     * @param websiteId Optional parameter defining with which websiteId should be execution returned
+     * @param websiteId
+     *            Optional parameter defining with which websiteId should be
+     *            execution returned
      * @return list of executions
      */
     public ResponseEntity<List<Execution>> getExecutions(Long websiteId) {
@@ -46,9 +47,11 @@ public class ExecutionService {
     /**
      * Get an execution by id
      *
-     * @param id ID of execution to be found
+     * @param id
+     *            ID of execution to be found
      * @return Found execution
-     * @throws NotFoundException when no execution has parameter id
+     * @throws NotFoundException
+     *             when no execution has parameter id
      */
     public ResponseEntity<Execution> getExecution(Long id) {
         Execution ex = executionRepository.findById(id).orElse(null);
@@ -61,12 +64,15 @@ public class ExecutionService {
     /**
      * Trigger new execution for a given website record
      *
-     * @param wrId ID of website record to execute
+     * @param wrId
+     *            ID of website record to execute
      * @return ok status
-     * @throws NotFoundException when no website record has parameter id
+     * @throws NotFoundException
+     *             when no website record has parameter id
      */
     public ResponseEntity<Void> startExecution(Long wrId) {
-        WebsiteRecord wr = websiteRecordRepository.findById(wrId).orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+        WebsiteRecord wr = websiteRecordRepository.findById(wrId)
+                .orElseThrow(() -> new NotFoundException("WebsiteRecord"));
         deactivateExecution(wrId);
         if (!schedulingConfig.isScheduled(wrId)) {
             websiteRecordRepository.setActivity(true, wrId);
@@ -76,11 +82,14 @@ public class ExecutionService {
     }
 
     /**
-     * Deactivate running execution and future periodical executions for a given website record if it is scheduled
+     * Deactivate running execution and future periodical executions for a given
+     * website record if it is scheduled
      *
-     * @param wrId ID of website record to stop executions on
+     * @param wrId
+     *            ID of website record to stop executions on
      * @return ok status
-     * @throws NotFoundException when no website record has parameter id
+     * @throws NotFoundException
+     *             when no website record has parameter id
      */
     public ResponseEntity<Void> deactivateExecution(Long wrId) {
         schedulingConfig.cancelCrawlingTask(wrId);
@@ -90,12 +99,13 @@ public class ExecutionService {
     }
 
     /**
-     * Delete all executions from database that were executed from concrete website record
+     * Delete all executions from database that were executed from concrete website
+     * record
      *
-     * @param websiteId ID of website by which to delete all executions
+     * @param websiteId
+     *            ID of website by which to delete all executions
      */
     public void deleteExecutionsByWebsiteId(Long websiteId) {
         executionRepository.deleteByWebsiteId(websiteId);
     }
-
 }
