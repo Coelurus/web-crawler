@@ -1,39 +1,40 @@
+import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from 'react';
 
-import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from 'react'
-
-import RecordsHeader from './RecordsHeader'
-import RecordsTable from './RecordsTable'
-import Record from '../data-classes/Record'
-
+import RecordsHeader from './RecordsHeader';
+import RecordsTable from './RecordsTable';
+import Record from '../data-classes/Record';
 
 type RecordsProps = {
-  records:Record[], 
-  activeRecordIds: Array<number>,
-  setActiveRecordIds: Dispatch<SetStateAction<number[]>>,
-  tags:string[], 
-  setEditingRecord:Dispatch<SetStateAction<Record|null>>, 
-  reloadData(): void
-}
+  records: Record[];
+  activeRecordIds: Array<number>;
+  setActiveRecordIds: Dispatch<SetStateAction<number[]>>;
+  tags: string[];
+  setEditingRecord: Dispatch<SetStateAction<Record | null>>;
+  reloadData(): void;
+};
 
-export default function Records({records, activeRecordIds, setActiveRecordIds, tags, setEditingRecord, reloadData}: RecordsProps)
-{
-
-  const [url, setUrl] = useState('')
-  const [label, setLabel] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [sortByUrl, setSortByUrl] = useState<boolean>(false) 
-  
-
+export default function Records({
+  records,
+  activeRecordIds,
+  setActiveRecordIds,
+  tags,
+  setEditingRecord,
+  reloadData,
+}: RecordsProps) {
+  const [url, setUrl] = useState('');
+  const [label, setLabel] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortByUrl, setSortByUrl] = useState<boolean>(false);
 
   const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value)
-  }
+    setUrl(e.target.value);
+  };
   const handleLabelChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setLabel(e.target.value)
-  }
+    setLabel(e.target.value);
+  };
   const handleTagsChange = (newTags: Array<string>) => {
-    setSelectedTags(newTags)
-  }
+    setSelectedTags(newTags);
+  };
 
   const sortedRecords = useMemo(() => {
     return [...records].sort((a, b) => {
@@ -45,7 +46,7 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
       return timeB - timeA;
     });
   }, [records, sortByUrl]);
-  
+
   const handleSortChange = (value: boolean) => {
     setSortByUrl(value);
   };
@@ -53,29 +54,28 @@ export default function Records({records, activeRecordIds, setActiveRecordIds, t
   return (
     <>
       <h1>Records</h1>
-      <RecordsHeader 
-        url={url} 
-        label={label} 
+      <RecordsHeader
+        url={url}
+        label={label}
         sortByUrl={sortByUrl}
         tags={tags}
         selectedTags={selectedTags}
-        onUrlChange={handleUrlChange} 
-        onLabelChange={handleLabelChange} 
+        onUrlChange={handleUrlChange}
+        onLabelChange={handleLabelChange}
         onSelectedTagsChange={handleTagsChange}
         onSortByUrlChange={handleSortChange}
       />
-      <RecordsTable 
-        records={sortedRecords} 
+      <RecordsTable
+        records={sortedRecords}
         activeRecordIds={activeRecordIds}
         setActiveRecordIds={setActiveRecordIds}
         itemsPerPage={3}
-        searchLabel={label} 
+        searchLabel={label}
         searchUrl={url}
         searchTags={selectedTags}
         setEditingRecord={setEditingRecord}
         reloadData={reloadData}
       />
-
     </>
-  )
+  );
 }
