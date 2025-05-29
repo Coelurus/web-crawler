@@ -56,12 +56,9 @@ export default function App() {
         clearInterval(interval);
       }
     };
-  }, [change, liveMode]);
+  }, [change, liveMode, activeRecordIds]);
 
-  type NodesDomainMapping = {
-    processedNodes: NodeObject[];
-    webToDomain: { [key: number]: string };
-  };
+
 
   const getExecutionIds = useCallback(
     (record_ids: number[]): number[] => {
@@ -71,41 +68,36 @@ export default function App() {
     [records]
   );
 
+  function hasIdProperty(node: unknown): node is { id: number | string } {
+    return typeof node === 'object' && node !== null && 'id' in node;
+  }
+
+  const getNodeId = useCallback((node: string | number | NodeObject | undefined): number => {
+    if (!node) throw new Error('Invalid node format')
+    if (typeof node === 'number') return node;
+    if (typeof node === 'string') return parseInt(node, 10);
+    if (hasIdProperty(node)) return typeof node.id === 'string' ? parseInt(node.id, 10) : node.id;
+    throw new Error('Invalid node format');
+  }, [])
   const filterLinksByExecutionIds = useCallback(
     (links: LinkObject[], execution_ids: number[]): LinkObject[] => {
-      return links.filter((link) =>
-        execution_ids.includes(
-          allCrawls.find((crawl) => crawl.id === link.source)?.executionId as number
-        )
-      );
+      return links.filter((link) => {
+        if (link.source && link.target){
+          const crawlSource = allCrawls.find((crawl) => crawl.id === getNodeId(link.source));
+          
+          
+          return (
+            crawlSource &&
+            execution_ids.includes(crawlSource.executionId)
+          );
+
+        }
+
+      });
     },
-    [allCrawls]
+    [allCrawls, getNodeId]
   );
-
-  const { processedNodes, webToDomain }: NodesDomainMapping = useMemo(processNodes, [
-    allCrawls,
-    domainView,
-    activeRecordIds,
-    getExecutionIds,
-  ]);
-  const processedLinks = useMemo(processLinks, [
-    allLinks,
-    domainView,
-    activeRecordIds,
-    filterLinksByExecutionIds,
-    getExecutionIds,
-    webToDomain,
-  ]);
-
-  const handleViewChange = (value: boolean) => {
-    setDomainView(value);
-    setChange((prevState) => !prevState);
-  };
-  const handleLiveModeChange = (value: boolean) => {
-    setLiveMode(value);
-  };
-
-  function processNodes(): NodesDomainMapping {
+  const processNodes = useCallback(() => {
     if (allCrawls.length === 0) return { processedNodes: [], webToDomain: {} };
     const activeRecordExecs = getExecutionIds(activeRecordIds);
     const activeCrawls = filterCrawlsByExecutionIds(allCrawls, activeRecordExecs);
@@ -158,9 +150,9 @@ export default function App() {
       webToDomain[crawl.id as number] = domain;
     });
     return { processedNodes: Object.values(domainNodes), webToDomain: webToDomain };
-  }
+  }, [activeRecordIds, allCrawls, domainView, getExecutionIds])
 
-  function processLinks(): LinkObject[] {
+  const processLinks = useCallback((webToDomain:{[key: number]: string}) => {
     const activeRecordExecs = getExecutionIds(activeRecordIds);
 
     if (!domainView) {
@@ -170,12 +162,42 @@ export default function App() {
 
     const loadedLinks = allLinks.filter(
       (link) => webToDomain[link.source as number] && webToDomain[link.target as number]
-    ); // filter the loaded nodes
-    return filterLinksByExecutionIds(loadedLinks, activeRecordExecs).map<LinkObject>((link) => ({
-      source: webToDomain[link.source as number],
-      target: webToDomain[link.target as number],
-    }));
-  }
+    );
+
+    const finalLinks = filterLinksByExecutionIds(loadedLinks, activeRecordExecs).map<LinkObject>(
+      (link) => ({
+        source: webToDomain[link.source as number],
+        target: webToDomain[link.target as number],
+      })
+    );
+
+    return finalLinks;
+  }, [activeRecordIds, allLinks, domainView, filterLinksByExecutionIds, getExecutionIds])
+
+  type NodesDomainMapping = {
+    processedNodes: NodeObject[];
+    webToDomain: { [key: number]: string };
+  };
+  const { processedNodes, processedLinks } = useMemo(() => {
+    const nodesResult: NodesDomainMapping  = processNodes();
+    const linksResult = processLinks(nodesResult.webToDomain)
+    return { processedNodes: nodesResult.processedNodes, processedLinks: linksResult}
+
+  }, [
+    processLinks,
+    processNodes
+  ])
+
+
+  const handleViewChange = (value: boolean) => {
+    setDomainView(value);
+    setChange((prevState) => !prevState);
+  };
+  const handleLiveModeChange = (value: boolean) => {
+    setLiveMode(value);
+  };
+
+
   function filterCrawlsByExecutionIds(crawls: CrawledWeb[], execution_ids: number[]): NodeObject[] {
     return crawls.filter((crawl) => execution_ids.includes(crawl.executionId));
   }
@@ -194,7 +216,6 @@ export default function App() {
       setLiveMode(true);
       setRecords((prev) => [...prev, addedRecord]);
       setActiveRecordIds((prev) => [...prev, addedRecord.id]);
-      console.log(addedRecord);
     } catch (error) {
       console.log(error);
       toast.error("Couldn't create a record");
@@ -224,7 +245,6 @@ export default function App() {
       toast.error('Failed to edit a record');
     }
   }
-
   return (
     <>
       <Toaster />
