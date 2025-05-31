@@ -1,17 +1,17 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ForceGraph2D, { LinkObject, NodeObject } from 'react-force-graph-2d';
 import CrawledDetail from './CrawledDetail';
 
 type GraphProps = {
   nodes: NodeObject[];
   links: LinkObject[];
-  selectedNode: NodeObject | null;
-  setSelectedNode: Dispatch<SetStateAction<NodeObject | null>>;
+  reloadData(): void;
 };
 
-export default function Graph({ nodes, links, selectedNode, setSelectedNode }: GraphProps) {
+export default function Graph({ nodes, links, reloadData }: GraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [selectedNode, setSelectedNode] = useState<NodeObject | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -32,7 +32,7 @@ export default function Graph({ nodes, links, selectedNode, setSelectedNode }: G
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
-      <CrawledDetail node={selectedNode} setNode={setSelectedNode} />
+      <CrawledDetail node={selectedNode} setNode={setSelectedNode} reloadData={reloadData} />
 
       <ForceGraph2D
         graphData={{ nodes: nodes, links: links }}

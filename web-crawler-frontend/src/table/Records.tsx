@@ -41,8 +41,13 @@ export default function Records({
       if (sortByUrl) {
         return a.url.localeCompare(b.url);
       }
-      const timeA = (a.lastExecution?.startTime ?? new Date(0)).getTime();
-      const timeB = (b.lastExecution?.startTime ?? new Date(0)).getTime();
+      const timeA = a.lastExecution?.startTime.getTime();
+      const timeB = b.lastExecution?.startTime.getTime();
+      if (!timeA) {
+        return -1;
+      } else if (!timeB) {
+        return 0;
+      }
       return timeB - timeA;
     });
   }, [records, sortByUrl]);

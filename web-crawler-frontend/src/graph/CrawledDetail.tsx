@@ -7,9 +7,11 @@ import { fetchRecordsForCrawl, runRecordExecution } from '../data-service';
 export default function CrawledDetail({
   node,
   setNode,
+  reloadData,
 }: {
   node: NodeObject | null;
   setNode: Dispatch<SetStateAction<NodeObject | null>>;
+  reloadData(): void;
 }) {
   const [recordsList, setRecordsList] = useState<Record[]>([]);
 
@@ -17,13 +19,13 @@ export default function CrawledDetail({
     const fetchRecords = async () => {
       if (node !== null) {
         let recordsList = [];
-        if (node.urls){
-          const records = (await Promise.all(node.urls.map((url: string) => fetchRecordsForCrawl(url)))).flat()
-          recordsList = removeDuplicateRecords(records)
-          
-        }
-        else {
-          recordsList = await fetchRecordsForCrawl(node.url)
+        if (node.urls) {
+          const records = (
+            await Promise.all(node.urls.map((url: string) => fetchRecordsForCrawl(url)))
+          ).flat();
+          recordsList = removeDuplicateRecords(records);
+        } else {
+          recordsList = await fetchRecordsForCrawl(node.url);
         }
         setRecordsList(recordsList);
       } else {
@@ -35,10 +37,11 @@ export default function CrawledDetail({
 
   async function runRecord(recordId: number) {
     await runRecordExecution(recordId);
+    reloadData();
   }
 
-  function removeDuplicateRecords(records: Record[]){
-    return [... new Map(records.map(record => [record["id"], record])).values()]
+  function removeDuplicateRecords(records: Record[]) {
+    return [...new Map(records.map((record) => [record['id'], record])).values()];
   }
 
   return (

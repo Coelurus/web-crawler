@@ -27,7 +27,6 @@ export default function App() {
   const [tags, setTags] = useState<string[]>([]);
   const [editingRecord, setEditingRecord] = useState<Record | null>(null);
   const [domainView, setDomainView] = useState<boolean>(false);
-  const [selectedNode, setSelectedNode] = useState<NodeObject | null>(null);
   const [liveMode, setLiveMode] = useState<boolean>(false);
   const liveIntervalMs = 5000;
 
@@ -58,8 +57,6 @@ export default function App() {
     };
   }, [change, liveMode, activeRecordIds]);
 
-
-
   const getExecutionIds = useCallback(
     (record_ids: number[]): number[] => {
       const activeRecords: Record[] = records.filter((record) => record_ids.includes(record.id));
@@ -73,26 +70,20 @@ export default function App() {
   }
 
   const getNodeId = useCallback((node: string | number | NodeObject | undefined): number => {
-    if (!node) throw new Error('Invalid node format')
+    if (!node) throw new Error('Invalid node format');
     if (typeof node === 'number') return node;
     if (typeof node === 'string') return parseInt(node, 10);
     if (hasIdProperty(node)) return typeof node.id === 'string' ? parseInt(node.id, 10) : node.id;
     throw new Error('Invalid node format');
-  }, [])
+  }, []);
   const filterLinksByExecutionIds = useCallback(
     (links: LinkObject[], execution_ids: number[]): LinkObject[] => {
       return links.filter((link) => {
-        if (link.source && link.target){
+        if (link.source && link.target) {
           const crawlSource = allCrawls.find((crawl) => crawl.id === getNodeId(link.source));
-          
-          
-          return (
-            crawlSource &&
-            execution_ids.includes(crawlSource.executionId)
-          );
 
+          return crawlSource && execution_ids.includes(crawlSource.executionId);
         }
-
       });
     },
     [allCrawls, getNodeId]
@@ -119,7 +110,7 @@ export default function App() {
     }
     const domains: string[] = [];
     const domainRegex: RegExp = /:\/\/([^\/?#]+)/;
-    const domainNodes: {[key: string]: NodeObject} = {}; // nodes by their domain
+    const domainNodes: { [key: string]: NodeObject } = {}; // nodes by their domain
 
     const webToDomain: { [key: number]: string } = {};
 
@@ -127,9 +118,8 @@ export default function App() {
       const match = crawl.url.match(domainRegex);
       if (!match) return; // not a valid url
       const domain = match[1];
-      
+
       if (!domains.includes(domain)) {
-        
         const baseNode: NodeObject = {
           id: domain,
           label: domain,
@@ -144,50 +134,47 @@ export default function App() {
         domains.push(domain);
         domainNodes[domain] = baseNode;
       }
-      domainNodes[domain].urls.push(crawl.url)
-      
+      domainNodes[domain].urls.push(crawl.url);
 
       webToDomain[crawl.id as number] = domain;
     });
     return { processedNodes: Object.values(domainNodes), webToDomain: webToDomain };
-  }, [activeRecordIds, allCrawls, domainView, getExecutionIds])
+  }, [activeRecordIds, allCrawls, domainView, getExecutionIds]);
 
-  const processLinks = useCallback((webToDomain:{[key: number]: string}) => {
-    const activeRecordExecs = getExecutionIds(activeRecordIds);
+  const processLinks = useCallback(
+    (webToDomain: { [key: number]: string }) => {
+      const activeRecordExecs = getExecutionIds(activeRecordIds);
 
-    if (!domainView) {
-      const filteredLinks = filterLinksByExecutionIds(allLinks, activeRecordExecs);
-      return filteredLinks.filter((link) => link.source && link.target);
-    }
+      if (!domainView) {
+        const filteredLinks = filterLinksByExecutionIds(allLinks, activeRecordExecs);
+        return filteredLinks.filter((link) => link.source && link.target);
+      }
 
-    const loadedLinks = allLinks.filter(
-      (link) => webToDomain[link.source as number] && webToDomain[link.target as number]
-    );
+      const loadedLinks = allLinks.filter(
+        (link) => webToDomain[link.source as number] && webToDomain[link.target as number]
+      );
 
-    const finalLinks = filterLinksByExecutionIds(loadedLinks, activeRecordExecs).map<LinkObject>(
-      (link) => ({
-        source: webToDomain[link.source as number],
-        target: webToDomain[link.target as number],
-      })
-    );
+      const finalLinks = filterLinksByExecutionIds(loadedLinks, activeRecordExecs).map<LinkObject>(
+        (link) => ({
+          source: webToDomain[link.source as number],
+          target: webToDomain[link.target as number],
+        })
+      );
 
-    return finalLinks;
-  }, [activeRecordIds, allLinks, domainView, filterLinksByExecutionIds, getExecutionIds])
+      return finalLinks;
+    },
+    [activeRecordIds, allLinks, domainView, filterLinksByExecutionIds, getExecutionIds]
+  );
 
   type NodesDomainMapping = {
     processedNodes: NodeObject[];
     webToDomain: { [key: number]: string };
   };
   const { processedNodes, processedLinks } = useMemo(() => {
-    const nodesResult: NodesDomainMapping  = processNodes();
-    const linksResult = processLinks(nodesResult.webToDomain)
-    return { processedNodes: nodesResult.processedNodes, processedLinks: linksResult}
-
-  }, [
-    processLinks,
-    processNodes
-  ])
-
+    const nodesResult: NodesDomainMapping = processNodes();
+    const linksResult = processLinks(nodesResult.webToDomain);
+    return { processedNodes: nodesResult.processedNodes, processedLinks: linksResult };
+  }, [processLinks, processNodes]);
 
   const handleViewChange = (value: boolean) => {
     setDomainView(value);
@@ -196,7 +183,6 @@ export default function App() {
   const handleLiveModeChange = (value: boolean) => {
     setLiveMode(value);
   };
-
 
   function filterCrawlsByExecutionIds(crawls: CrawledWeb[], execution_ids: number[]): NodeObject[] {
     return crawls.filter((crawl) => execution_ids.includes(crawl.executionId));
@@ -288,8 +274,7 @@ export default function App() {
         <Graph
           nodes={processedNodes}
           links={processedLinks}
-          selectedNode={selectedNode}
-          setSelectedNode={setSelectedNode}
+          reloadData={() => setChange((prev) => !prev)}
         />
       </div>
       <hr />
