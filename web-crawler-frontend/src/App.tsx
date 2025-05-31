@@ -23,8 +23,8 @@ export default function App() {
   const [activeRecordIds, setActiveRecordIds] = useState<number[]>([]);
   const [allCrawls, setAllCrawls] = useState<CrawledWeb[]>([]);
   const [allLinks, setAllLinks] = useState<LinkObject[]>([]);
-  const [change, setChange] = useState<boolean>(false);
   const [tags, setTags] = useState<string[]>([]);
+  const [change, setChange] = useState<boolean>(false);
   const [editingRecord, setEditingRecord] = useState<Record | null>(null);
   const [domainView, setDomainView] = useState<boolean>(false);
   const [liveMode, setLiveMode] = useState<boolean>(false);

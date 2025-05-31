@@ -3,6 +3,7 @@ import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from 'react'
 import RecordsHeader from './RecordsHeader';
 import RecordsTable from './RecordsTable';
 import Record from '../data-classes/Record';
+import { RecordsContext } from './RecordsContext';
 
 type RecordsProps = {
   records: Record[];
@@ -70,17 +71,17 @@ export default function Records({
         onSelectedTagsChange={handleTagsChange}
         onSortByUrlChange={handleSortChange}
       />
-      <RecordsTable
-        records={sortedRecords}
-        activeRecordIds={activeRecordIds}
-        setActiveRecordIds={setActiveRecordIds}
-        itemsPerPage={3}
-        searchLabel={label}
-        searchUrl={url}
-        searchTags={selectedTags}
-        setEditingRecord={setEditingRecord}
-        reloadData={reloadData}
-      />
+      <RecordsContext.Provider value={{reloadData: reloadData, setEditingRecord: setEditingRecord}}>
+        <RecordsTable
+          records={sortedRecords}
+          activeRecordIds={activeRecordIds}
+          setActiveRecordIds={setActiveRecordIds}
+          itemsPerPage={3}
+          searchLabel={label}
+          searchUrl={url}
+          searchTags={selectedTags}
+        />
+      </RecordsContext.Provider>
     </>
   );
 }

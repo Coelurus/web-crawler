@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { deleteRecord, editRecord, fetchExecution } from '../data-service';
 import toast from 'react-hot-toast';
 import Execution from '../data-classes/Execution';
+import { useRecordsContext } from './RecordsContext';
 
 type RecordsTableProps = {
   records: Array<Record>;
@@ -13,8 +14,6 @@ type RecordsTableProps = {
   searchLabel: string;
   searchUrl: string;
   searchTags: string[];
-  setEditingRecord: Dispatch<SetStateAction<Record | null>>;
-  reloadData(): void;
 };
 
 export default function RecordsTable({
@@ -24,10 +23,10 @@ export default function RecordsTable({
   itemsPerPage,
   searchLabel,
   searchUrl,
-  searchTags,
-  setEditingRecord,
-  reloadData,
+  searchTags
 }: RecordsTableProps) {
+  const {reloadData, setEditingRecord} = useRecordsContext();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [executions, setExecutions] = useState<{ [key: string]: Execution }>({});
 
