@@ -8,6 +8,7 @@ import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
+import cz.cuni.mff.web_crawler_backend.error.exception.InternalServerException;
 import cz.cuni.mff.web_crawler_backend.error.exception.NotFoundException;
 import cz.cuni.mff.web_crawler_backend.service.api.CrawlService;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public class CrawlerService {
     private final ExecutorService executorService;
     private final Map<Long, AtomicBoolean> stopFlags = new ConcurrentHashMap<>();
 
-    private final int MAX_CONCURRENT_REQUESTS = 16;
+    private static final int MAX_CONCURRENT_REQUESTS = 16;
 
     @Autowired
     public CrawlerService(CrawlResultRepository crawlResultRepository, CrawlLinkRepository crawlLinkRepository,
@@ -139,7 +140,7 @@ public class CrawlerService {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        throw new RuntimeException("Crawling interrupted", e);
+                        throw new InternalServerException("Crawling interrupted: " + e);
                     }
                     continue;
                 }
@@ -162,7 +163,7 @@ public class CrawlerService {
             }
         } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Crawling interrupted", e);
+            throw new InternalServerException("Crawling interrupted" + e);
         }
     }
 
