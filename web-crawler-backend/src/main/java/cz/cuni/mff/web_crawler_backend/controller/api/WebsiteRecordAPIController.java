@@ -95,6 +95,11 @@ public class WebsiteRecordAPIController {
         return ResponseEntity.noContent().build();
     }
 
+    /**
+     * Get all Website Records crawling given url
+     * @param query URL of page to find related website records
+     * @return List of all website records that crawled given url
+     */
     @GetMapping(value = "/websites/url")
     public ResponseEntity<List<WebsiteRecord>> getRecordsCrawlingUrl(@RequestParam String query) {
         return ResponseEntity.ok(websiteRecordService.getRecordsCrawlingUrl(query));

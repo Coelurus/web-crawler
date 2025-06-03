@@ -9,7 +9,6 @@ import cz.cuni.mff.web_crawler_backend.service.crawler.CrawlerService;
 import cz.cuni.mff.web_crawler_backend.service.crawler.SchedulingConfig;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,11 +36,11 @@ public class ExecutionService {
      *            execution returned
      * @return list of executions
      */
-    public ResponseEntity<List<Execution>> getExecutions(Long websiteId) {
+    public List<Execution> getExecutions(Long websiteId) {
         if (websiteId != null) {
-            return ResponseEntity.ok(executionRepository.findByWebsiteId(websiteId));
+            return executionRepository.findByWebsiteId(websiteId);
         }
-        return ResponseEntity.ok(executionRepository.findAll());
+        return executionRepository.findAll();
     }
 
     /**
@@ -53,12 +52,12 @@ public class ExecutionService {
      * @throws NotFoundException
      *             when no execution has parameter id
      */
-    public ResponseEntity<Execution> getExecution(Long id) {
+    public Execution getExecution(Long id) {
         Execution ex = executionRepository.findById(id).orElse(null);
         if (ex == null) {
             throw new NotFoundException("Execution");
         }
-        return ResponseEntity.ok(ex);
+        return ex;
     }
 
     /**
@@ -66,11 +65,10 @@ public class ExecutionService {
      *
      * @param wrId
      *            ID of website record to execute
-     * @return ok status
      * @throws NotFoundException
      *             when no website record has parameter id
      */
-    public ResponseEntity<Void> startExecution(Long wrId) {
+    public void startExecution(Long wrId) {
         WebsiteRecord wr = websiteRecordRepository.findById(wrId)
                 .orElseThrow(() -> new NotFoundException("WebsiteRecord"));
         deactivateExecution(wrId);
@@ -78,7 +76,6 @@ public class ExecutionService {
             websiteRecordRepository.setActivity(true, wrId);
             schedulingConfig.scheduleCrawlingTask(wr);
         }
-        return ResponseEntity.ok().build();
     }
 
     /**
@@ -91,11 +88,10 @@ public class ExecutionService {
      * @throws NotFoundException
      *             when no website record has parameter id
      */
-    public ResponseEntity<Void> deactivateExecution(Long wrId) {
+    public void deactivateExecution(Long wrId) {
         schedulingConfig.cancelCrawlingTask(wrId);
         websiteRecordRepository.setActivity(false, wrId);
         crawlerService.stopExecution(wrId);
-        return ResponseEntity.ok().build();
     }
 
     /**

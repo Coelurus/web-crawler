@@ -19,8 +19,13 @@ public class TagAPIController {
         this.tagService = tagService;
     }
 
+    /**
+     * Get all tags saved in system
+     *
+     * @return All tags
+     */
     @GetMapping(value = "/tags")
     public ResponseEntity<List<String>> getTags() {
-        return tagService.getAllTags();
+        return ResponseEntity.ok(tagService.getAllTags());
     }
 }

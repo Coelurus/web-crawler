@@ -38,6 +38,12 @@ public class SchedulingConfig {
         scheduledTasks.put(websiteRecord.getId(), scheduledFuture);
     }
 
+    /**
+     * Check whether website record crawling is scheduled
+     *
+     * @param websiteRecordId ID of website record to check
+     * @return True if website record crawling is scheduled False otherwise
+     */
     public boolean isScheduled(Long websiteRecordId) {
         return scheduledTasks.containsKey(websiteRecordId);
     }
@@ -57,13 +63,3 @@ public class SchedulingConfig {
         }
     }
 }
-/*
- * 
- * 
- * @PostConstruct public void scheduleExistingTasks() { List<WebsiteRecord>
- * tasks = wrRepo.findAll(); for (WebsiteRecord task : tasks) {
- * scheduleCrawlingTask(task); } }
- * 
- * 
- * 
- */

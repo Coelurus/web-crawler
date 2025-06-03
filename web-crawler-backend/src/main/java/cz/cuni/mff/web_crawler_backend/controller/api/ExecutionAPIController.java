@@ -30,7 +30,7 @@ public class ExecutionAPIController {
     @GetMapping(value = "/executions")
     public ResponseEntity<List<Execution>> getExecutions(
             @RequestParam(name = "websiteId", required = false) Long websiteId) {
-        return executionService.getExecutions(websiteId);
+        return ResponseEntity.ok(executionService.getExecutions(websiteId));
     }
 
     /**
@@ -44,7 +44,7 @@ public class ExecutionAPIController {
      */
     @GetMapping(value = "/executions/{id}")
     public ResponseEntity<Execution> getExecution(@PathVariable Long id) {
-        return executionService.getExecution(id);
+        return ResponseEntity.ok(executionService.getExecution(id));
     }
 
     /**
@@ -58,7 +58,8 @@ public class ExecutionAPIController {
      */
     @PostMapping(value = "/execute/{wr_id}")
     public ResponseEntity<Void> startExecution(@PathVariable(name = "wr_id") Long wrId) {
-        return executionService.startExecution(wrId);
+        executionService.startExecution(wrId);
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -72,6 +73,7 @@ public class ExecutionAPIController {
      */
     @PostMapping(value = "/deactivate/{wr_id}")
     public ResponseEntity<Void> deactivateExecution(@PathVariable(name = "wr_id") Long wrId) {
-        return executionService.deactivateExecution(wrId);
+        executionService.deactivateExecution(wrId);
+        return ResponseEntity.ok().build();
     }
 }
