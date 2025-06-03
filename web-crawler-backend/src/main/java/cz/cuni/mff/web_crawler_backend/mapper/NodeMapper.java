@@ -18,8 +18,7 @@ public class NodeMapper {
     private final CrawlResultRepository crawlResultRepository;
     private final ExecutionRepository executionRepository;
 
-    public NodeMapper(CrawlLinkRepository crawlLinkRepository,
-                      CrawlResultRepository crawlResultRepository,
+    public NodeMapper(CrawlLinkRepository crawlLinkRepository, CrawlResultRepository crawlResultRepository,
             ExecutionRepository executionRepository) {
         this.crawlLinkRepository = crawlLinkRepository;
         this.crawlResultRepository = crawlResultRepository;
@@ -29,7 +28,8 @@ public class NodeMapper {
     /**
      * Map CrawlResult to Node for GraphQl representation
      *
-     * @param result CrawlResult to map
+     * @param result
+     *            CrawlResult to map
      * @return Mapped NodeDTO
      */
     public NodeDTO mapToNodeDTO(CrawlResult result) {

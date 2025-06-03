@@ -41,7 +41,8 @@ public class SchedulingConfig {
     /**
      * Check whether website record crawling is scheduled
      *
-     * @param websiteRecordId ID of website record to check
+     * @param websiteRecordId
+     *            ID of website record to check
      * @return True if website record crawling is scheduled False otherwise
      */
     public boolean isScheduled(Long websiteRecordId) {

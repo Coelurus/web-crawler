@@ -97,7 +97,9 @@ public class WebsiteRecordAPIController {
 
     /**
      * Get all Website Records crawling given url
-     * @param query URL of page to find related website records
+     * 
+     * @param query
+     *            URL of page to find related website records
      * @return List of all website records that crawled given url
      */
     @GetMapping(value = "/websites/url")

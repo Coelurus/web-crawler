@@ -31,7 +31,8 @@ public class CrawlService {
     /**
      * Get all nodes crawled by the system in one execution
      *
-     * @param executionId ID of execution under which were nodes crawled
+     * @param executionId
+     *            ID of execution under which were nodes crawled
      * @return List of all nodes crawled by the system in one execution
      */
     public List<CrawlResult> getCrawlResultsById(Long executionId) {
@@ -50,7 +51,8 @@ public class CrawlService {
     /**
      * Get all links between nodes crawled by the system in one execution
      *
-     * @param executionId ID of execution under which were links between nodes crawled
+     * @param executionId
+     *            ID of execution under which were links between nodes crawled
      * @return List of all node links crawled by the system in one execution
      */
     public List<CrawlLink> getCrawlLinksById(Long executionId) {
@@ -60,7 +62,8 @@ public class CrawlService {
     /**
      * Delete all crawled data under one execution
      *
-     * @param executionId ID of execution under which to delete all data
+     * @param executionId
+     *            ID of execution under which to delete all data
      */
     public void deleteAllCrawlDataByExecutionId(Long executionId) {
         linkRepository.deleteByExecutionId(executionId);

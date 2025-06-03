@@ -255,7 +255,8 @@ public class WebsiteRecordService {
     /**
      * Get website records which crawled url
      *
-     * @param url URL of web page being crawled by website records
+     * @param url
+     *            URL of web page being crawled by website records
      * @return List of website records that crawled given URL
      */
     public List<WebsiteRecord> getRecordsCrawlingUrl(String url) {

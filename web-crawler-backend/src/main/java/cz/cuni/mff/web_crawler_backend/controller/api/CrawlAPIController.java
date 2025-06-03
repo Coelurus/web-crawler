@@ -34,7 +34,8 @@ public class CrawlAPIController {
     /**
      * Get all pages found during crawling under execution
      *
-     * @param executionId ID of execution under which crawling happened
+     * @param executionId
+     *            ID of execution under which crawling happened
      * @return List of all pages under execution with given ID
      */
     @GetMapping("/crawl/data/{execution_id}")
@@ -56,7 +57,8 @@ public class CrawlAPIController {
     /**
      * Get all links between pages found during crawling under execution
      *
-     * @param executionId ID of execution under which crawling happened
+     * @param executionId
+     *            ID of execution under which crawling happened
      * @return List of all links under execution
      */
     @GetMapping("/crawl/link/{execution_id}")
