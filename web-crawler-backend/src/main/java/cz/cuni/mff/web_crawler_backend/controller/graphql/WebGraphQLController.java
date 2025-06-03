@@ -7,6 +7,8 @@ import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import cz.cuni.mff.web_crawler_backend.mapper.NodeMapper;
 import java.util.List;
+
+import cz.cuni.mff.web_crawler_backend.service.api.CrawlService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
@@ -17,12 +19,14 @@ public class WebGraphQLController {
     private final WebsiteRecordRepository websiteRecordRepository;
     private final CrawlResultRepository crawlResultRepository;
     private final NodeMapper nodeMapper;
+    private final CrawlService crawlService;
 
     public WebGraphQLController(WebsiteRecordRepository websiteRecordRepository,
-            CrawlResultRepository crawlResultRepository, NodeMapper nodeMapper) {
+            CrawlResultRepository crawlResultRepository, NodeMapper nodeMapper, CrawlService crawlService) {
         this.nodeMapper = nodeMapper;
         this.websiteRecordRepository = websiteRecordRepository;
         this.crawlResultRepository = crawlResultRepository;
+        this.crawlService = crawlService;
     }
 
     @QueryMapping
@@ -33,7 +37,9 @@ public class WebGraphQLController {
     @QueryMapping
     public List<NodeDTO> nodes(@Argument List<Long> webPages) {
         List<WebsiteRecord> roots = websiteRecordRepository.findAllById(webPages);
-        List<CrawlResult> results = roots.stream().map(WebsiteRecord::getCrawledData).toList();
+        List<CrawlResult> results = roots.stream()
+                .map(result -> crawlService.getCrawlResultsById(result.getExecutions().getLast().getId()))
+                .flatMap(List::stream).toList();
         return results.stream().map(nodeMapper::mapToNodeDTO).toList();
     }
 }

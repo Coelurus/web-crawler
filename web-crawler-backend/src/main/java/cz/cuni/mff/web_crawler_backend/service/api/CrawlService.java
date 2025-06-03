@@ -6,7 +6,6 @@ import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,24 +19,20 @@ public class CrawlService {
         this.resultRepository = resultRepository;
     }
 
-    public ResponseEntity<List<CrawlResult>> getAllCrawlResults() {
-        List<CrawlResult> results = resultRepository.findAll();
-        return ResponseEntity.ok(results);
+    public List<CrawlResult> getAllCrawlResults() {
+        return resultRepository.findAll();
     }
 
-    public ResponseEntity<List<CrawlResult>> getCrawlResultsById(Long executionId) {
-        List<CrawlResult> results = resultRepository.findByExecutionId(executionId);
-        return ResponseEntity.ok(results);
+    public List<CrawlResult> getCrawlResultsById(Long executionId) {
+        return resultRepository.findByExecutionId(executionId);
     }
 
-    public ResponseEntity<List<CrawlLink>> getAllCrawlLinks() {
-        List<CrawlLink> links = linkRepository.findAll();
-        return ResponseEntity.ok(links);
+    public List<CrawlLink> getAllCrawlLinks() {
+        return linkRepository.findAll();
     }
 
-    public ResponseEntity<List<CrawlLink>> getCrawlLinksById(Long executionId) {
-        List<CrawlLink> links = linkRepository.findByExecutionId(executionId);
-        return ResponseEntity.ok(links);
+    public List<CrawlLink> getCrawlLinksById(Long executionId) {
+        return linkRepository.findByExecutionId(executionId);
     }
 
     public void deleteAllCrawlDataByExecutionId(Long executionId) {

@@ -38,7 +38,7 @@ public class NodeMapper {
         Execution owner = executionRepository.findById(result.getExecutionId()).orElse(null);
 
         return new NodeDTO(result.getTitle(), result.getUrl(),
-                result.getCrawlTime() == null ? null : result.getCrawlTime().toString(),
-                linkedResults.stream().map(this::mapToNodeDTO).toList(), owner.getWebsite());
+                result.getCrawlTime() == null ? null : result.getCrawlTime(),
+                linkedResults.stream().map(CrawlResult::getUrl).toList(), owner.getWebsite());
     }
 }
