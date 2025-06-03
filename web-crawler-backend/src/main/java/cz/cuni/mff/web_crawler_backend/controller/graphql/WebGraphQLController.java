@@ -3,7 +3,6 @@ package cz.cuni.mff.web_crawler_backend.controller.graphql;
 import cz.cuni.mff.web_crawler_backend.controller.api.model.NodeDTO;
 import cz.cuni.mff.web_crawler_backend.database.model.CrawlResult;
 import cz.cuni.mff.web_crawler_backend.database.model.WebsiteRecord;
-import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import cz.cuni.mff.web_crawler_backend.mapper.NodeMapper;
 import java.util.List;
@@ -17,15 +16,13 @@ import org.springframework.stereotype.Controller;
 public class WebGraphQLController {
 
     private final WebsiteRecordRepository websiteRecordRepository;
-    private final CrawlResultRepository crawlResultRepository;
     private final NodeMapper nodeMapper;
     private final CrawlService crawlService;
 
     public WebGraphQLController(WebsiteRecordRepository websiteRecordRepository,
-            CrawlResultRepository crawlResultRepository, NodeMapper nodeMapper, CrawlService crawlService) {
+            NodeMapper nodeMapper, CrawlService crawlService) {
         this.nodeMapper = nodeMapper;
         this.websiteRecordRepository = websiteRecordRepository;
-        this.crawlResultRepository = crawlResultRepository;
         this.crawlService = crawlService;
     }
 

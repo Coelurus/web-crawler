@@ -31,9 +31,9 @@ services:
           "CMD-SHELL",
           "curl -f http://backend:8080/api/websites || exit 1"
         ]
-      timeout: 5s
+      timeout: 10s
       interval: 10s
-      retries: 10
+      retries: 20
 
   database:
     image: postgres:16.2

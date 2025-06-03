@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class WebsiteRecordService {
 
+    public static final String WEBSITE_RECORD = "WebsiteRecord";
     private final WebsiteRecordRepository websiteRecordRepository;
     private final TagRepository tagRepository;
     private final PeriodicityTimeRepository periodicityTimeRepository;
@@ -130,7 +131,7 @@ public class WebsiteRecordService {
     public WebsiteRecord getRecord(Long id) {
         WebsiteRecord wr = websiteRecordRepository.findById(id).orElse(null);
         if (wr == null) {
-            throw new NotFoundException("WebsiteRecord");
+            throw new NotFoundException(WEBSITE_RECORD);
         }
         return wr;
     }
@@ -145,7 +146,7 @@ public class WebsiteRecordService {
     public WebsiteRecord updateRecord(Long id, String label, String url, String boundaryRegExp, String periodicity,
             String tags, Boolean active) {
         WebsiteRecord wr = websiteRecordRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+                .orElseThrow(() -> new NotFoundException(WEBSITE_RECORD));
 
         boolean deleteData = false;
         boolean periodicityChanged = false;
@@ -232,7 +233,7 @@ public class WebsiteRecordService {
      */
     private void deleteAssociatedData(Long id) {
         WebsiteRecord toDelete = websiteRecordRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("WebsiteRecord"));
+                .orElseThrow(() -> new NotFoundException(WEBSITE_RECORD));
         CrawlResult root = toDelete.getCrawledData();
         if (root != null) {
             crawlService.deleteAllCrawlDataByExecutionId(root.getExecutionId());
