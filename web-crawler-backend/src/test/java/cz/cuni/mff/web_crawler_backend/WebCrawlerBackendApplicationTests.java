@@ -8,5 +8,6 @@ class WebCrawlerBackendApplicationTests {
 
     @Test
     void contextLoads() {
+        // Test if app can be build and started
     }
 }

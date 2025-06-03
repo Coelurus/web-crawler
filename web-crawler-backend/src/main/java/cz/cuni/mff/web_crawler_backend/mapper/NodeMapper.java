@@ -7,8 +7,9 @@ import cz.cuni.mff.web_crawler_backend.database.model.Execution;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.ExecutionRepository;
-import cz.cuni.mff.web_crawler_backend.database.repository.WebsiteRecordRepository;
 import java.util.List;
+
+import cz.cuni.mff.web_crawler_backend.error.exception.InternalServerException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,7 +41,7 @@ public class NodeMapper {
         List<CrawlResult> linkedResults = crawlResultRepository
                 .findAllById(links.stream().map(CrawlLink::getTo).toList());
 
-        Execution owner = executionRepository.findById(result.getExecutionId()).orElse(null);
+        Execution owner = executionRepository.findById(result.getExecutionId()).orElseThrow(() -> new InternalServerException("GraphQL owner execution does not exist"));
 
         return new NodeDTO(result.getTitle(), result.getUrl(),
                 result.getCrawlTime() == null ? null : result.getCrawlTime(),
