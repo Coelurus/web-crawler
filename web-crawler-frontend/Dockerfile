@@ -1,4 +1,4 @@
-FROM node:21.7.2-slim as build
+FROM node:21.7.2-slim AS build
 
 WORKDIR /opt/vite
 
