@@ -6,7 +6,6 @@ import cz.cuni.mff.web_crawler_backend.database.repository.CrawlLinkRepository;
 import cz.cuni.mff.web_crawler_backend.database.repository.CrawlResultRepository;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,26 +19,52 @@ public class CrawlService {
         this.resultRepository = resultRepository;
     }
 
-    public ResponseEntity<List<CrawlResult>> getAllCrawlResults() {
-        List<CrawlResult> results = resultRepository.findAll();
-        return ResponseEntity.ok(results);
+    /**
+     * Get all nodes crawled by the system
+     *
+     * @return List of all crawled webpages
+     */
+    public List<CrawlResult> getAllCrawlResults() {
+        return resultRepository.findAll();
     }
 
-    public ResponseEntity<List<CrawlResult>> getCrawlResultsById(Long executionId) {
-        List<CrawlResult> results = resultRepository.findByExecutionId(executionId);
-        return ResponseEntity.ok(results);
+    /**
+     * Get all nodes crawled by the system in one execution
+     *
+     * @param executionId
+     *            ID of execution under which were nodes crawled
+     * @return List of all nodes crawled by the system in one execution
+     */
+    public List<CrawlResult> getCrawlResultsById(Long executionId) {
+        return resultRepository.findByExecutionId(executionId);
     }
 
-    public ResponseEntity<List<CrawlLink>> getAllCrawlLinks() {
-        List<CrawlLink> links = linkRepository.findAll();
-        return ResponseEntity.ok(links);
+    /**
+     * Get all links between nodes crawled by the system
+     *
+     * @return List of all node links
+     */
+    public List<CrawlLink> getAllCrawlLinks() {
+        return linkRepository.findAll();
     }
 
-    public ResponseEntity<List<CrawlLink>> getCrawlLinksById(Long executionId) {
-        List<CrawlLink> links = linkRepository.findByExecutionId(executionId);
-        return ResponseEntity.ok(links);
+    /**
+     * Get all links between nodes crawled by the system in one execution
+     *
+     * @param executionId
+     *            ID of execution under which were links between nodes crawled
+     * @return List of all node links crawled by the system in one execution
+     */
+    public List<CrawlLink> getCrawlLinksById(Long executionId) {
+        return linkRepository.findByExecutionId(executionId);
     }
 
+    /**
+     * Delete all crawled data under one execution
+     *
+     * @param executionId
+     *            ID of execution under which to delete all data
+     */
     public void deleteAllCrawlDataByExecutionId(Long executionId) {
         linkRepository.deleteByExecutionId(executionId);
         resultRepository.deleteByExecutionId(executionId);

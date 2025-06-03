@@ -166,6 +166,20 @@ public class CrawlerService {
         }
     }
 
+    /**
+     * Process newly created request for crawling a page
+     *
+     * @param crawlResult
+     *            Request to crawl
+     * @param pattern
+     *            Regex pattern to follow when scraping
+     * @param execution
+     *            Execution under which crawling is happening
+     * @param queue
+     *            Queue of all requests to crawl
+     * @param activeTasks
+     *            Number of active requests
+     */
     private void processCrawlResult(CrawlResult crawlResult, Pattern pattern, Execution execution,
             ConcurrentLinkedQueue<CrawlResult> queue, AtomicInteger activeTasks) {
         LocalDateTime startTime = LocalDateTime.now();
@@ -188,6 +202,22 @@ public class CrawlerService {
         crawlResultRepository.save(crawlResult);
     }
 
+    /**
+     * Scrape webpage, get metadata and find links
+     *
+     * @param queue
+     *            Queue of all requests to crawl
+     * @param execution
+     *            Execution under which crawling is happening
+     * @param crawlResult
+     *            Currently processing crawl
+     * @param pattern
+     *            Regex pattern to follow when scraping
+     * @param activeTasks
+     *            Number of active requests
+     * @throws IOException
+     *             When scraping fails
+     */
     private void readDataFromPage(ConcurrentLinkedQueue<CrawlResult> queue, Execution execution,
             CrawlResult crawlResult, Pattern pattern, AtomicInteger activeTasks) throws IOException {
         Document doc = Jsoup.connect(crawlResult.getUrl()).get();
@@ -204,6 +234,21 @@ public class CrawlerService {
         crawlResult.setSearched();
     }
 
+    /**
+     * Process link found on page
+     * 
+     * @param queue
+     *            Queue of all requests to crawl
+     * @param executionId
+     *            ID of execution under which crawling is happening
+     * @param pattern
+     *            Regex pattern to follow when scraping
+     * @param crawlResult
+     *            Currently processing crawl
+     * @param activeTasks
+     *            Number of active requests
+     * @return consumer for DOM element representing anchor
+     */
     private Consumer<Element> resolveLink(ConcurrentLinkedQueue<CrawlResult> queue, Long executionId, Pattern pattern,
             CrawlResult crawlResult, AtomicInteger activeTasks) {
         return a -> {

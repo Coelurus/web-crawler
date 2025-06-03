@@ -71,7 +71,9 @@ export default function Records({
         onSelectedTagsChange={handleTagsChange}
         onSortByUrlChange={handleSortChange}
       />
-      <RecordsContext.Provider value={{reloadData: reloadData, setEditingRecord: setEditingRecord}}>
+      <RecordsContext.Provider
+        value={{ reloadData: reloadData, setEditingRecord: setEditingRecord }}
+      >
         <RecordsTable
           records={sortedRecords}
           activeRecordIds={activeRecordIds}

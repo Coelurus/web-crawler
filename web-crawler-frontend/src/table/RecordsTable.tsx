@@ -23,9 +23,9 @@ export default function RecordsTable({
   itemsPerPage,
   searchLabel,
   searchUrl,
-  searchTags
+  searchTags,
 }: RecordsTableProps) {
-  const {reloadData, setEditingRecord} = useRecordsContext();
+  const { reloadData, setEditingRecord } = useRecordsContext();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [executions, setExecutions] = useState<{ [key: string]: Execution }>({});

@@ -16,17 +16,22 @@ public class NodeMapper {
 
     private final CrawlLinkRepository crawlLinkRepository;
     private final CrawlResultRepository crawlResultRepository;
-    private final WebsiteRecordRepository websiteRecordRepository;
     private final ExecutionRepository executionRepository;
 
     public NodeMapper(CrawlLinkRepository crawlLinkRepository, CrawlResultRepository crawlResultRepository,
-            WebsiteRecordRepository websiteRecordRepository, ExecutionRepository executionRepository) {
+            ExecutionRepository executionRepository) {
         this.crawlLinkRepository = crawlLinkRepository;
         this.crawlResultRepository = crawlResultRepository;
-        this.websiteRecordRepository = websiteRecordRepository;
         this.executionRepository = executionRepository;
     }
 
+    /**
+     * Map CrawlResult to Node for GraphQl representation
+     *
+     * @param result
+     *            CrawlResult to map
+     * @return Mapped NodeDTO
+     */
     public NodeDTO mapToNodeDTO(CrawlResult result) {
         if (result == null) {
             return null;
@@ -38,7 +43,7 @@ public class NodeMapper {
         Execution owner = executionRepository.findById(result.getExecutionId()).orElse(null);
 
         return new NodeDTO(result.getTitle(), result.getUrl(),
-                result.getCrawlTime() == null ? null : result.getCrawlTime().toString(),
-                linkedResults.stream().map(this::mapToNodeDTO).toList(), owner.getWebsite());
+                result.getCrawlTime() == null ? null : result.getCrawlTime(),
+                linkedResults.stream().map(CrawlResult::getUrl).toList(), owner.getWebsite());
     }
 }

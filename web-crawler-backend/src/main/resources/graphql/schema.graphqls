@@ -16,6 +16,6 @@ type Node{
     title: String
     url: String!
     crawlTime: String
-    links: [Node!]!
+    links: [String!]!
     owner: WebPage!
 }

@@ -21,24 +21,48 @@ public class CrawlAPIController {
         this.crawlService = crawlService;
     }
 
+    /**
+     * Get all pages found during crawling
+     *
+     * @return List of all pages
+     */
     @GetMapping("/crawl/data")
     public ResponseEntity<List<CrawlResult>> getAllCrawlResults() {
-        return crawlService.getAllCrawlResults();
+        return ResponseEntity.ok(crawlService.getAllCrawlResults());
     }
 
+    /**
+     * Get all pages found during crawling under execution
+     *
+     * @param executionId
+     *            ID of execution under which crawling happened
+     * @return List of all pages under execution with given ID
+     */
     @GetMapping("/crawl/data/{execution_id}")
     public ResponseEntity<List<CrawlResult>> getCrawlResultsById(
             @PathVariable(name = "execution_id") Long executionId) {
-        return crawlService.getCrawlResultsById(executionId);
+        return ResponseEntity.ok(crawlService.getCrawlResultsById(executionId));
     }
 
+    /**
+     * Get all links between pages found during crawling
+     *
+     * @return List of all links
+     */
     @GetMapping("/crawl/link")
     public ResponseEntity<List<CrawlLink>> getAllCrawlLinks() {
-        return crawlService.getAllCrawlLinks();
+        return ResponseEntity.ok(crawlService.getAllCrawlLinks());
     }
 
+    /**
+     * Get all links between pages found during crawling under execution
+     *
+     * @param executionId
+     *            ID of execution under which crawling happened
+     * @return List of all links under execution
+     */
     @GetMapping("/crawl/link/{execution_id}")
     public ResponseEntity<List<CrawlLink>> getCrawlLinksById(@PathVariable(name = "execution_id") Long executionId) {
-        return crawlService.getCrawlLinksById(executionId);
+        return ResponseEntity.ok(crawlService.getCrawlLinksById(executionId));
     }
 }
